@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{scrextend, layout, bm  }
+\usepackage{fancyhdr,graphicx}%
+\usepackage[margin=1in]{geometry}
+% \usepackage[bottom=1in,top=1in, margin=1in]{geometry}
+\pagenumbering{gobble}
+\usepackage{amsmath, amssymb}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\F}{\mathcal{F}}
+\DeclareMathOperator{\G}{\mathcal{G}}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\usepackage{enumitem}
+\graphicspath{ {/Users/greg/Dropbox/Kleiber/Notes/fall-break-notes/} }
+%\fancypagestyle{plain}{
+%  \fancyhf{}% Clear header/footer
+%  \fancyhead[L]{Bishop Notes}% Right header
+%  \renewcommand{\headrulewidth}{0pt}
+%}
+\pagestyle{plain}% Set page style to plain.
+\setlength{\headsep}{5pt}
+
+\begin{document}
+\section*{Heilmeier's Criteria}
+    \begin{itemize}
+        \item What are you trying to do? What is the problem? Why is it hard?
+
+        Implement multi-kernel learning on top of GPyTorch. There's currently no unified (i.e. within a larger library) implementation of multi-kernel learning for Gaussian processes. Multi-kernel learning is a new problem with limited approaches and adjustments will need to be made to GPyTorch's base code for reliable and flexible implementation.
+
+        \item How is it done today, and what are the limits of the current practice?
+
+        It isn't done today. Melkumyan has a method, but there is not a publically available implementation.
+
+        \item What's new in your approach and why do you think it will be successful?
+
+        GPyTorch's implementation of multi-task GPs allows for only one kernel function that gets applied to each task - we want to extend this flexibility to allow for RBF kernels with differing length scales for each of the output tasks.
+
+        We believe that this will be successful given prior research indicating the strength of the method and knowledge of real-world data that behaves in a fashion that reflects GPs with different kernels for each of the outputs (i.e. PIMCO CEF).
+
+        \item Who Cares?
+
+        There's obivous applications to this (finance, geology, meteorology, etc) but it also builds a foundation for further theory - what about $\mathbb{R}^2 \rightarrow \mathbb{R}^2$ with distinct kernels for each task? What about increased computational efficiency for the exact and approximate inference with the resulting kernel structure?
+
+        \item If you're successful what difference will it make? What impact will success have? How will it be measured?
+
+        If successful we will have provided a tool that removes barries to entry in complex modeling using GPs. Success will open new inroads into further research using multi-task GPs.
+
+        \item What are the risks and the payoffs?
+
+        The risks for this are that the scope is limited in terms of what kernels can be selected for each task, and that the benefits of using multiple kernels does not outweigh the increase in complexity of the model.
+
+        \item How much will it cost?
+
+        Nothing
+
+        \item How long will it take?
+
+        Hopefully a month.
+
+        \item What are the midterm and final criteria for success? How will progress be measured?
+
+        Midterm: Working implementation of multi-task learning with RBF kernels. Validated on synthetic data. If implementation goes smoothly, more kernels than RBF (Matern).
+
+        Final: Thouroughly tested on real-world data, potentially large data. Compare to multi-task learning using single data covariance kernel.
+    \end{itemize}
+\end{document}
