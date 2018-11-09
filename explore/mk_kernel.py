@@ -2,14 +2,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+import math
 import torch
 from gpytorch.kernels import RBFKernel
 from torch.autograd import Variable
 from gpytorch.kernels import Kernel, RBFKernel
-from gpytorch.lazy import BlockLazyTensor, LazyTensor
+from gpytorch.lazy import BlockLazyTensor, LazyTensor, NonLazyTensor
 
 import sys
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/explore-mkgp/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/")
 
 from multi_kernel_tensor import MultiKernelTensor
 
@@ -25,16 +26,22 @@ class multi_kernel(Kernel):
     #     return True
 
 
-    def sq_exp_fun(self, x1, x2, length):
+    def sq_exp_fun(self, x1, x2, length, **params):
+        x1_ = x1.div(length)
+        x2_ = x2.div(length)
+        x1_, x2_ = self._create_input_grid(x1_, x2_, **params)
 
-        diff = (x1 - x2).norm(2, dim=-1)
-        return diff.pow(2).div_(-length**2).exp_()
+        diff = (x1_ - x2_).norm(2, dim=-1)
+        return diff.pow(2).div_(-2).exp_()
 
-    def sq_exp_mix(self, x1, x2, length1, length2):
-        diff = (x1 - x2).norm(2, dim=-1)
-        diff = diff.div_(length1**2 + length2**2)
+    def sq_exp_mix(self, x1, x2, length1, length2, **params):
 
-        return diff.pow(2).div(-1).exp()
+        x1_, x2_ = self._create_input_grid(x1, x2, **params)
+        diff = (x1_ - x2_).norm(2, dim=-1)
+        # print(diff)
+        # print(diff.pow(2).div(-1).exp_())
+        pre_term = math.sqrt((2*length1 * length2)/(length1**2 + length2**2))
+        return pre_term * diff.pow(2).div(-1*(length1**2 + length2**2)).exp_()
 
     def size(self, x1, x2):
         """
@@ -49,42 +56,66 @@ class multi_kernel(Kernel):
 
 
     def forward(self, x1, x2, **params):
-        # print("HIT KERNEL GENERATION")
-        # print(x1)
-        # print(x2)
-        x1_len = len(x1[0])
-        x2_len = len(x2[0])
 
-        x1 = x1.div(self.lengthscales[0])
-        x2 = x2.div(self.lengthscales[1])
-        x1, x2 = self._create_input_grid(x1, x2, **params)
-
-        diff_mat = (x1 - x2).norm(2, dim=-1) # gives the matrix of ||x - x'|| for all pairs
-
-        # TODO: get block matrix of kernels
-        multi_task_mat = torch.Tensor()
-        multi_task_mat = multi_task_mat.new_empty((1, self.num_tasks*x1_len, self.num_tasks*x2_len))
-        # multi_task_mat = multi_task_mat.new_empty((self.num_tasks**2, dat_len, dat_len))
+        mat_list = [None for _ in range(self.num_tasks**2)]
 
         inder = -1
         for t1 in range(self.num_tasks):
             for t2 in range(self.num_tasks):
                 inder += 1
-
-                row_start = t1*x1_len
-                col_start = t2*x2_len
-
-                # print(row_start, row_end, col_start, col_end)
                 if t1 == t2:
-                    multi_task_mat[0][row_start:(row_start+x1_len), col_start:(col_start+x2_len)] = self.sq_exp_fun(x1, x2, self.lengthscales[t1])
-                    # multi_task_mat[inder] = self.sq_exp_fun(x1, x2, self.lengthscales[t1])
-
+                    mat_list[inder] = self.sq_exp_fun(x1, x2, self.lengthscales[t1], **params)
                 else:
-                    multi_task_mat[0][row_start:(row_start+x1_len), col_start:(col_start+x2_len)] = self.sq_exp_mix(x1, x2,
-                                        self.lengthscales[t1], self.lengthscales[t2])
-                    # multi_task_mat[inder] = self.sq_exp_mix(x1, x2,
-                                                # self.lengthscales[t1], self.lengthscales[t2])
-        return MultiKernelTensor(multi_task_mat)
+                    mat_list[inder] = self.sq_exp_mix(x1, x2, self.lengthscales[t1], self.lengthscales[t2], **params)
+                    #____ MAT ___ = mix kernel mat
+
+        ## combine matrices ##
+        ## ONLY WORKS FOR TWO TASKS, FIX LATER ##
+        # print(mat_list[0])
+        row1 = torch.cat([mat_list[0], mat_list[1]], 2)
+        row2 = torch.cat([mat_list[2], mat_list[3]], 2)
+
+        multi_task_mat = torch.cat([row1, row2], 1)
+        # print(NonLazyTensor(multi_task_mat).tensor)
+        return multi_task_mat
+
+    # def forward(self, x1, x2, **params):
+    #     # print("HIT KERNEL GENERATION")
+    #     # print(x1)
+    #     # print(x2)
+    #     x1_len = len(x1[0])
+    #     x2_len = len(x2[0])
+    #
+    #     x1 = x1.div(self.lengthscales[0])
+    #     x2 = x2.div(self.lengthscales[1])
+    #     x1, x2 = self._create_input_grid(x1, x2, **params)
+    #
+    #     diff_mat = (x1 - x2).norm(2, dim=-1) # gives the matrix of ||x - x'|| for all pairs
+    #
+    #     # TODO: get block matrix of kernels
+    #     multi_task_mat = torch.Tensor()
+    #     multi_task_mat = multi_task_mat.new_empty((1, self.num_tasks*x1_len, self.num_tasks*x2_len))
+    #     # multi_task_mat = multi_task_mat.new_empty((self.num_tasks**2, dat_len, dat_len))
+    #
+    #     inder = -1
+    #     for t1 in range(self.num_tasks):
+    #         for t2 in range(self.num_tasks):
+    #             inder += 1
+    #
+    #             row_start = t1*x1_len
+    #             col_start = t2*x2_len
+    #
+    #             # print(row_start, row_end, col_start, col_end)
+    #             if t1 == t2:
+    #                 multi_task_mat[0][row_start:(row_start+x1_len), col_start:(col_start+x2_len)] = self.sq_exp_fun(x1, x2, self.lengthscales[t1])
+    #                 # multi_task_mat[inder] = self.sq_exp_fun(x1, x2, self.lengthscales[t1])
+    #
+    #             else:
+    #                 multi_task_mat[0][row_start:(row_start+x1_len), col_start:(col_start+x2_len)] = self.sq_exp_mix(x1, x2,
+    #                                     self.lengthscales[t1], self.lengthscales[t2])
+    #                 # multi_task_mat[inder] = self.sq_exp_mix(x1, x2,
+    #                                             # self.lengthscales[t1], self.lengthscales[t2])
+    #     return NonLazyTensor(multi_task_mat)
 
 
 

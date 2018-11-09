@@ -8,9 +8,9 @@ f1 <- function(x) {
 f2 <- function(x) {
   40 + f1(x) + 3*sin(2*pi*x)
 }
-n <- 80
+n <- 10
 D <- data.frame(task=rep(c("one","two"),each=n),
-           x=rep(c(runif(n/2,0,2.5),runif(n/2,3,5)),2)) %>%
+           x=rep(1:n,2)) %>%
   mutate(y=ifelse(task=="one",f1(x),f2(x)))
 D$y <- D$y+rnorm(2*n,0,3)
 plot(D$x,D$y,col=D$task)
@@ -34,9 +34,9 @@ kcross <- function(x1,x2,l1,l2,across) {
 #                                       ncol=n)
 l1 <- 2.5
 l2 <- 0.3
-a1 <- 80
-a2 <- 3
-across <- 80*3
+a1 <- 1
+a2 <- 1
+across <- 1
 
 #for(i in 1:nrow(k1x1x1) ) {
 #  for(j in 1:ncol(k1x1x1) ) {

@@ -5,7 +5,7 @@ import torch
 import gpytorch
 from matplotlib import pyplot as plt
 import sys
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/explore-mkgp/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/")
 
 # import local_gpt as gpytorch
 import mk_kernel
@@ -44,6 +44,11 @@ def main():
     model.eval();
     likelihood.eval();
     f_pred = model(test_x)
+
+    f_pred.covariance_matrix[0]
+
+
+    sample = f_pred.sample(sample_shape = torch.Size([0]))
     # Initialize plots
     f, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3));
 

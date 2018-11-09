@@ -35,37 +35,38 @@ class MultiKernelTensor(gpytorch.lazy.LazyTensor):
     def _matmul(self, rhs):
         # print("covar mat shape = ", self.covar_mat.shape)
         # print("rhs shape = ", rhs.shape)
-        rtn = torch.mm(self.covar_mat, rhs)
+        rtn = torch.matmul(self.covar_mat, rhs)
         # print("returning something shape = ", rtn.shape)
         return rtn
 
     ## HOPEFULLY WONT USE THE STUFF BELOW HERE ##
-    def exact_predictive_mean(self, full_mean, train_labels, num_train,
-                              likelihood, precomputed_cache=None):
-        """
-        inputs:
-            self: contains covar_mat
-            full_mean: mean of X's (where is this computed) ** BROKEN
-            train_labels: concatenated vector of training Y's
-            num_train: number of points corresponding to training
-            likelihood: Likelihood Module (Mutlitask Gaussian Likelihood)
-            precomputed_cache: None
-
-
-        returns:
-            predictive mean:(same dimension as ??)
-            precomputed_cache: train_train_covar.inv_matmul(train_labels_offset)
-        Just boring old predictive inference, nothing computationally fancy for now
-        """
-        print(self.covar_mat.shape)
-        # print(full_mean.shape)
-        pred_mean = 1
-
-        return pred_mean
+    # def exact_predictive_mean(self, full_mean, train_labels, num_train,
+    #                           likelihood, precomputed_cache=None):
+    #     """
+    #     inputs:
+    #         self: contains covar_mat
+    #         full_mean: mean of X's (where is this computed) ** BROKEN
+    #         train_labels: concatenated vector of training Y's
+    #         num_train: number of points corresponding to training
+    #         likelihood: Likelihood Module (Mutlitask Gaussian Likelihood)
+    #         precomputed_cache: None
+    #
+    #
+    #     returns:
+    #         predictive mean:(same dimension as ??)
+    #         precomputed_cache: train_train_covar.inv_matmul(train_labels_offset)
+    #     Just boring old predictive inference, nothing computationally fancy for now
+    #     """
+    #     print(self.covar_mat.shape)
+    #     # print(full_mean.shape)
+    #     pred_mean = 1
+    #
+    #     return pred_mean
 
 
     def exact_predictive_covar(self, num_train, likelihood, precomputed_cache=None):
         """
         Just regular covariance prediction, nothing fancy
         """
+
         return pred_covar
