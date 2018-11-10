@@ -16,3 +16,8 @@ l_inds = torch.Tensor([0,1,2,3]).long()
 r_inds = torch.Tensor([0,1,2,3]).long()
 
 n_indices = l_inds.numel()
+
+
+num_train = 5
+test_mat
+test_mat[:num_train, :num_train]

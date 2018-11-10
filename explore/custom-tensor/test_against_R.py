@@ -5,7 +5,7 @@ import torch
 import gpytorch
 from matplotlib import pyplot as plt
 import sys
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/custom-tensor/")
 
 # import local_gpt as gpytorch
 import mk_kernel
