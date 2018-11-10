@@ -4,9 +4,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import torch
+import gpytorch
 from gpytorch.kernels import Kernel
-from gpytorch.kernels import IndexKernel
-from gpytorch.lazy import LazyTensor, NonLazyTensor, KroneckerProductLazyTensor
+from gpytorch.kernels import RBFKernel
+#from gpytorch.kernels import IndexKernel
+from gpytorch.lazy import LazyTensor, NonLazyTensor, KroneckerProductLazyTensor, BlockDiagLazyTensor
 
 
 class MultitaskRBFKernel(Kernel):
@@ -32,27 +34,39 @@ class MultitaskRBFKernel(Kernel):
             Prior to use for task kernel. See :class:`gpytorch.kernels.IndexKernel` for details.
     """
 
-    def __init__(self, data_covar_module, num_tasks, rank=1, batch_size=1, task_covar_prior=None):
+    def __init__(
+            self,
+            data_covar_module,
+            num_tasks,
+            rank=1,
+            batch_size=1,
+            task_covar_prior=None,
+            log_task_lengthscales=None):
         """
         """
         super(MultitaskRBFKernel, self).__init__()
-        self.task_covar_module = IndexKernel(
-            num_tasks=num_tasks, batch_size=batch_size, rank=rank, prior=task_covar_prior
-        )
-        self.data_covar_module = data_covar_module
+        #self.task_covar_module = IndexKernel(
+        #    num_tasks=num_tasks, batch_size=batch_size, rank=rank, prior=task_covar_prior
+        #)
+        self.within_covar_module = gpytorch.kernels.RBFKernel()
         self.num_tasks = num_tasks
         self.batch_size = 1
+        # We need gpytorch to know about the lengthscales - copied this from Kernel
+        self.register_parameter(
+            name="log_task_lengthscales",
+            parameter=torch.nn.Parameter(torch.zeros(self.num_tasks))
+        )
 
     def forward(self, x1, x2, diag=False, batch_dims=None, **params):
         if batch_dims == (0, 2):
             raise RuntimeError("MultitaskRBFKernel does not accept the batch_dims argument.")
 
-        covar_i = self.task_covar_module.covar_matrix
-        covar_i = covar_i.repeat(x1.size(0), 1, 1)
-        covar_x = self.data_covar_module(x1, x2, **params)
-        if not isinstance(covar_x, LazyTensor):
-            covar_x = NonLazyTensor(covar_x)
-        res = KroneckerProductLazyTensor(covar_i, covar_x)
+        covar_x1 = self.within_covar_module(x1, x2, **params)
+        covar_x2 = self.within_covar_module(x1, x2, **params)
+        print(covar_x1.size())
+        for_diag = torch.stack((covar_x1.evaluate_kernel()[0].evaluate(),
+                                covar_x2.evaluate_kernel()[0].evaluate()))
+        res = BlockDiagLazyTensor(NonLazyTensor(for_diag))
 
         if diag:
             return res.diag()
