@@ -48,12 +48,6 @@ class MultitaskRBFKernel(Kernel):
         self.within_covar_module = gpytorch.kernels.RBFKernel()
         self.num_tasks = num_tasks
         self.batch_size = 1
-        self.register_parameter(
-            name="log_task_outputscales",
-            parameter=torch.nn.Parameter(torch.zeros(self.num_tasks))
-        )
-        self.log_task_outputscales = torch.nn.Parameter(torch.zeros(self.num_tasks))
-        # We need gpytorch to know about the lengthscales - copied this from Kernel
 
     def forward(self, x1, x2, diag=False, batch_dims=None, **params):
         if batch_dims == (0, 2):
@@ -62,8 +56,8 @@ class MultitaskRBFKernel(Kernel):
         covar_x1 = self.within_covar_module(x1, x2, **params)
         covar_x2 = self.within_covar_module(x1, x2, **params)
         for_diag = torch.stack(
-            (covar_x1.evaluate_kernel()[0].evaluate().mul(self.log_task_outputscales[0].exp()),
-             covar_x2.evaluate_kernel()[0].evaluate().mul(self.log_task_outputscales[1].exp())))
+            (covar_x1.evaluate_kernel()[0].evaluate(),
+             covar_x2.evaluate_kernel()[0].evaluate()))
         res = BlockDiagLazyTensor(NonLazyTensor(for_diag))
 
         if diag:
