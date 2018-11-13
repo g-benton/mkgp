@@ -77,7 +77,7 @@ class multi_kernel(Kernel):
 
         multi_task_mat = torch.cat([row1, row2], 1)
         # print(NonLazyTensor(multi_task_mat).tensor)
-        return multi_task_mat
+        return NonLazyTensor(multi_task_mat)
 
     # def forward(self, x1, x2, **params):
     #     # print("HIT KERNEL GENERATION")

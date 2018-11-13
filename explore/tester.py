@@ -17,7 +17,11 @@ r_inds = torch.Tensor([0,1,2,3]).long()
 
 n_indices = l_inds.numel()
 
-
+n_indices
 num_train = 5
 test_mat
 test_mat[:num_train, :num_train]
+
+n = 2
+q = 10
+r_perm = torch.zeros((n, q))

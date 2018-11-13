@@ -19,6 +19,7 @@ class multi_kernel(Kernel):
         super(multi_kernel, self).__init__()
         self.num_tasks = len(lengthscales)
         self.lengthscales = lengthscales
+        self.batch_size = 1
         # self.has_custom_exact_predictions = True
 
     @property
@@ -39,6 +40,7 @@ class multi_kernel(Kernel):
         x1_, x2_ = self._create_input_grid(x1, x2, **params)
         diff = (x1_ - x2_).norm(2, dim=-1)
         # print(diff)
+        return torch.zeros(diff.shape)
         # print(diff.pow(2).div(-1).exp_())
         pre_term = math.sqrt((2*length1 * length2)/(length1**2 + length2**2))
         return pre_term * diff.pow(2).div(-1*(length1**2 + length2**2)).exp_()
@@ -76,7 +78,9 @@ class multi_kernel(Kernel):
 
         multi_task_mat = torch.cat([row1, row2], 1)
         # print(NonLazyTensor(multi_task_mat).tensor)
-        return MultiKernelTensor(multi_task_mat, self.num_tasks)
+        tens_out = MultiKernelTensor(multi_task_mat, self.num_tasks)
+        tens_out.set_numtasks(self.num_tasks)
+        return tens_out
 
     # def forward(self, x1, x2, **params):
     #     # print("HIT KERNEL GENERATION")

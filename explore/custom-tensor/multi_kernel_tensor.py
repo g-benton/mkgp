@@ -16,10 +16,12 @@ class MultiKernelTensor(gpytorch.lazy.LazyTensor):
     def __init__(self, covar_mat, num_tasks=1):
         super(MultiKernelTensor, self).__init__(covar_mat)
         self.covar_mat = covar_mat
+        self.num_tasks = None
 
+    def set_numtasks(self, _num_tasks):
+        self.num_tasks = _num_tasks
 
     def _size(self):
-
         return self.covar_mat.size()
 
     def _get_indices(self, left_indices, right_indices):
@@ -60,23 +62,34 @@ class MultiKernelTensor(gpytorch.lazy.LazyTensor):
         """
         from gpytorch.distributions import MultivariateNormal
 
-        print(self.num_tasks)
+        # print(self.num_tasks)
         # total_train = num_train*
-        train_train_covar = self.covar_mat[:num_train, :num_train]
+        # print(break)
+        if self.num_tasks is None:
+            RuntimeError("Make sure to set the number of tasks for the MKTensor!")
+
+        print("covar mat size = ", self.covar_mat.shape)
+        print("train labels = ", train_labels)
+        train_train_covar = self[:num_train, :num_train]
         test_train_covar = self.covar_mat[num_train:, :num_train]
         train_test_covar = self.covar_mat[:num_train, num_train:]
         test_test_covar = self.covar_mat[num_train:, num_train:]
 
+        print("full_mean shape = ", full_mean.shape)
+        print("train labels shape = ", train_labels.shape)
+
         if precomputed_cache is None:
-            train_mean = full_mean[:num_train]
+            train_mean = full_mean.narrow(-1, 0, train_train_covar.size(-1))
+            print("train_labels.shape = ", train_labels.shape)
+            print("train_mean.shape = ", train_mean.shape)
             mvn = likelihood(MultivariateNormal(train_mean, train_train_covar))
             train_mean, train_train_covar = mvn.mean, mvn.lazy_covariance_matrix
 
-            print(train_labels)
             train_offset = train_labels - train_mean
             precomputed_cache = train_train_covar.inv_matmul(train_offset)
 
-        pred_mean = test_train_covar.matmul(precomputed_cache)
+
+        pred_mean = train_train_covar.matmul(precomputed_cache)
 
         print(precomputed_cache)
 
