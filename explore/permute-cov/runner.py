@@ -5,7 +5,7 @@ import torch
 import gpytorch
 from matplotlib import pyplot as plt
 import sys
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/permute-cov/")
 
 # import local_gpt as gpytorch
 import mk_kernel
@@ -17,7 +17,8 @@ class MultitaskModel(gpytorch.models.ExactGP):
             gpytorch.means.ConstantMean(), num_tasks=2
         )
         # self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = mk_kernel.multi_kernel(lengthscales=torch.Tensor([2.5, 0.3]))
+        # self.covar_module = mk_kernel.MultitaskRBFKernel(num_tasks=2,log_task_lengthscales=torch.Tensor([math.log(2.5), math.log(0.3)]))
+        self.covar_module = mk_kernel.MultitaskRBFKernel(num_tasks=2,log_task_lengthscales=torch.Tensor([-5,0]))
         # self.covar_module = gpytorch.kernels.ScaleKernel(mk_kernel.multi_kernel())
 
     def forward(self, x):
@@ -28,36 +29,54 @@ class MultitaskModel(gpytorch.models.ExactGP):
 def main():
 
     ## set up data ##
-    # train_x = torch.Tensor([i for i in range(1, 1000)])
+    train_x = torch.linspace(0, 1, 100)
+    test_x = torch.linspace(0.1, 1.1, 52)
+    train_y = torch.stack([torch.sin(train_x * (4 * math.pi)) + torch.randn(train_x.size()) * 0.2,torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,], -1)
+    # train_y1 = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
+    # train_y2 = torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
+    # train_y = torch.cat((train_y1, train_y2), 0)
 
-    train_x = torch.linspace(1, 10, 10)
-    test_x = train_x
-    # train_x = torch.linspace(0, 10, 1000)
-    # test_x = torch.linspace(0, 3.14, 1000)
-    train_y = torch.stack([torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,], -1)
+    ## set up model ##
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
     model = MultitaskModel(train_x, train_y, likelihood)
+    # model.covar_module.log_task_lengthscales = torch.Tensor([math.log(2.5), math.log(0.3)])
 
+    model.train();
+    likelihood.train();
 
-    model.covar_module(train_x, train_x).evaluate()
+    optimizer = torch.optim.Adam([
+        {'params': model.parameters()},  # Includes GaussianLikelihood parameters
+    ], lr=0.1)
 
-    print("Calculated Covariance Matrix:")
-    print(model.covar_module(train_x, train_x).evaluate())
+    model.parameters
+
+    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+
+    n_iter = 50
+    for i in range(n_iter):
+        optimizer.zero_grad()
+        output = model(train_x)
+        loss = -mll(output, train_y)
+        loss.backward()
+        # print('Iter %d/%d - Loss: %.3f' % (i + 1, n_iter, loss.item()))
+        print('Iter %d/%d - Loss: %.3f   logscale1: %.3f  logscale2: %.3f  log_noise: %.3f' % (
+            i + 1, n_iter, loss.item(),
+            model.covar_module.log_task_lengthscales.data[0],
+            model.covar_module.log_task_lengthscales.data[1],
+            model.likelihood.log_noise.item()
+        ))
+        optimizer.step()
+
     model.eval();
     likelihood.eval();
-    f_pred = model(train_x);
 
-    print("\n Posterior Covariance Matrix:")
-    print(f_pred.covariance_matrix)
+    print(model.covar_module.log_task_lengthscales)
 
     with torch.no_grad(), gpytorch.fast_pred_var():
         # test_x = torch.linspace(0, 1, 51)
-        predictions = likelihood(model(train_x))
+        predictions = likelihood(model(test_x))
         mean = predictions.mean
-        # lower, upper = predictions.confidence_region()
 
-    # f_pred.covariance_matrix
-    # predictions.covariance_matrix
 
     f, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))
     y1_ax.plot(train_x.detach().numpy(), train_y[:, 0].detach().numpy(), 'k*')
