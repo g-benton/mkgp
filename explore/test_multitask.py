@@ -1,3 +1,4 @@
+import json
 import math
 import torch
 import gpytorch
@@ -42,11 +43,16 @@ likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
 model = MultitaskGPModel(train_x, train_y, likelihood)
 
 # Set into eval mode
-# Find optimal model hyperparameters
-model.train()
-likelihood.train()
+# Find optimal model hyper
+model.train();
+likelihood.train();
 
 # Use the adam optimizer
+
+
+model.covar_module.task_covar_module.covar_matrix.evaluate()
+
+
 optimizer = torch.optim.Adam([
     {'params': model.parameters()},  # Includes GaussianLikelihood parameters
 ], lr=0.1)

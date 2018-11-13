@@ -5,7 +5,7 @@ import torch
 import gpytorch
 from matplotlib import pyplot as plt
 import sys
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/permute-cov/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/explore/object-kernel/")
 
 # import local_gpt as gpytorch
 import mk_kernel
@@ -18,7 +18,7 @@ class MultitaskModel(gpytorch.models.ExactGP):
         )
         # self.mean_module = gpytorch.means.ConstantMean()
         # self.covar_module = mk_kernel.MultitaskRBFKernel(num_tasks=2,log_task_lengthscales=torch.Tensor([math.log(2.5), math.log(0.3)]))
-        self.covar_module = mk_kernel.MultitaskRBFKernel(num_tasks=2,log_task_lengthscales=torch.Tensor([[-1,0]]))
+        self.covar_module = mk_kernel.MultitaskRBFKernel(num_tasks=2)
         # self.covar_module = gpytorch.kernels.ScaleKernel(mk_kernel.multi_kernel())
 
     def forward(self, x):
@@ -39,16 +39,16 @@ def main():
     ## set up model ##
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
     model = MultitaskModel(train_x, train_y, likelihood)
+    model.covar_module.in_task1.log_lengthscale.data[0][0][0] = -5
     # model.covar_module.log_task_lengthscales = torch.Tensor([math.log(2.5), math.log(0.3)])
 
     model.train();
     likelihood.train();
+
+
     for i in model.named_parameters():
         print(i)
     optimizer = torch.optim.Adam([{'params': model.parameters()}, ], lr=0.1)
-
-    optimizer.param_groups
-    model.likelihood.log_task_noises.data[0]
 
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
 
@@ -59,17 +59,20 @@ def main():
         loss = -mll(output, train_y)
         loss.backward()
         # print('Iter %d/%d - Loss: %.3f' % (i + 1, n_iter, loss.item()))
-        print('Iter %d/%d - Loss: %.3f   logscale1: %.3f  logscale2: %.3f  log_noise1: %.3f  log_noise2: %.3f' % (
+        print('Iter %d/%d - Loss: %.3f   log_length1: %.3f log_length2: %.3f log_noise1: %.3f  log_noise2: %.3f' % (
             i + 1, n_iter, loss.item(),
-            model.covar_module.log_task_lengthscales.data[0][0],
-            model.covar_module.log_task_lengthscales.data[0][1],
+            model.covar_module.in_task1.lengthscale.item(),
+            model.covar_module.in_task2.lengthscale.item(),
             model.likelihood.log_task_noises.data[0][0],
             model.likelihood.log_task_noises.data[0][1]
         ))
 
-        for ind, ii in enumerate(model.named_parameters()):
-            print(ii[1].grad)
+        # for ind, ii in enumerate(model.named_parameters()):
+        #     print(ii[1].grad)
         optimizer.step()
+
+
+
 
     model.eval();
     likelihood.eval();

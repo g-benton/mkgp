@@ -25,3 +25,7 @@ test_mat[:num_train, :num_train]
 n = 2
 q = 10
 r_perm = torch.zeros((n, q))
+
+
+for elem in l_inds:
+    print(elem * r_inds)

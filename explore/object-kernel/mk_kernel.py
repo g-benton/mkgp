@@ -6,7 +6,7 @@ import math
 import torch
 import gpytorch
 from gpytorch.kernels import Kernel
-from gpytorch.kernels import RBFKernel
+from gpytorch.kernels import RBFKernel, IndexKernel
 #from gpytorch.kernels import IndexKernel
 from gpytorch.lazy import LazyTensor, NonLazyTensor, KroneckerProductLazyTensor, BlockDiagLazyTensor
 
@@ -48,23 +48,26 @@ class MultitaskRBFKernel(Kernel):
             num_tasks,
             rank=1,
             batch_size=1,
-            task_covar_prior=None,
-            log_task_lengthscales=None):
-        """
-        """
+            task_covar_prior=None):
+
         super(MultitaskRBFKernel, self).__init__()
         #self.task_covar_module = IndexKernel(
         #    num_tasks=num_tasks, batch_size=batch_size, rank=rank, prior=task_covar_prior
         #)
         # self.within_covar_module = gpytorch.kernels.RBFKernel()
+        self.output_scale_kernel = IndexKernel(num_tasks=num_tasks, batch_size=1,
+                                               rank=1, prior=task_covar_prior)
+        # self.in_task_covar = [gpytorch.kernels.RBFKernel() for _ in range(num_tasks)]
+        self.in_task1 = gpytorch.kernels.RBFKernel()
+        self.in_task2 = gpytorch.kernels.RBFKernel()
         self.num_tasks = num_tasks
         self.batch_size = 1
         # We need gpytorch to know about the lengthscales - copied this from Kernel
 
-        self.register_parameter(
-            name="log_task_lengthscales",
-            parameter=torch.nn.Parameter(log_task_lengthscales)
-        )
+        # self.register_parameter(
+        #     name="log_task_lengthscales",
+        #     parameter=torch.nn.Parameter(log_task_lengthscales)
+        # )
 
     def perm_matrices(self, x1, x2):
         m = self.num_tasks
@@ -95,8 +98,8 @@ class MultitaskRBFKernel(Kernel):
         return diff.pow(2).div_(-2).exp_()
 
     def sq_exp_mix(self, x1, x2, length1, length2, **params):
-        length1 = math.exp(length1)
-        length2 = math.exp(length2)
+        # length1 = math.exp(length1)
+        # length2 = math.exp(length2)
         x1_, x2_ = self._create_input_grid(x1, x2, **params)
         diff = (x1_ - x2_).norm(2, dim=-1)
         # print(diff)
@@ -118,6 +121,9 @@ class MultitaskRBFKernel(Kernel):
 
     def forward(self, x1, x2, **params):
 
+        # for kern in self.in_task_covar:
+        #     print(kern.forward(x1, x2, **params))
+
         mat_list = [None for _ in range(self.num_tasks**2)]
 
         inder = -1
@@ -125,14 +131,25 @@ class MultitaskRBFKernel(Kernel):
             for t2 in range(self.num_tasks):
                 inder += 1
                 if t1 == t2:
-                    mat_list[inder] = self.sq_exp_fun(x1, x2, self.log_task_lengthscales[0][t1], **params)
+                    if t1 == 1:
+                        mat_list[inder] = self.in_task1.forward(x1, x2, **params)
+                    else:
+                        mat_list[inder] = self.in_task2.forward(x1, x2, **params)
+
                 else:
-                    mat_list[inder] = self.sq_exp_mix(x1, x2, self.log_task_lengthscales[0][t1], self.log_task_lengthscales[0][t2], **params)
+                    mat_list[inder] = self.sq_exp_mix(x1, x2, self.in_task1.lengthscale.item(),
+                                                      self.in_task2.lengthscale.item(), **params)
                     #____ MAT ___ = mix kernel mat
 
         ## combine matrices ##
         ## ONLY WORKS FOR TWO TASKS, FIX LATER ##
         # print(mat_list[0])
+
+        scale_mat = self.output_scale_kernel.covar_matrix.evaluate().view(-1)
+
+        for ind, scale in enumerate(scale_mat):
+            mat_list[ind] = scale * mat_list[ind]
+
         row1 = torch.cat([mat_list[0], mat_list[1]], 2)
         row2 = torch.cat([mat_list[2], mat_list[3]], 2)
 
