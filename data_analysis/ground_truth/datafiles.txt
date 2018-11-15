@@ -1,0 +1,51 @@
+# example1.csv:
+columns are `x`, `task 1`, and `task 2`, respectively.
+`task 1` has lengthscale 3, outputscale 110
+`task 2` has lengthscale 1, outputscale 11 
+cross-covariance parameter is 33.
+print(model.covar_module.output_scale_kernel.covar_matrix.evaluate())
+tensor([[[110.,  33.],
+         [ 33.,  11.]]], grad_fn=<AddBackward0>)
+print(model.covar_module.in_task1.lengthscale)
+tensor([[[3.]]], grad_fn=<ClampBackward>)
+print(model.covar_module.in_task2.lengthscale)
+tensor([[[1.]]], grad_fn=<ClampBackward>)
+
+# example2.csv:
+columns are `x`, `task 1`, and `task 2`, respectively.
+`task 1` has lengthscale 3, outputscale 200
+`task 2` has lengthscale 1, outputscale 200
+cross-covariance parameter is -200.
+print(model.covar_module.output_scale_kernel.covar_matrix.evaluate())
+tensor([[[ 200.0010, -200.0000],
+         [-200.0000,  200.0010]]], grad_fn=<AddBackward0>)
+print(model.covar_module.in_task1.lengthscale)
+tensor([[[3.]]], grad_fn=<ClampBackward>)
+print(model.covar_module.in_task2.lengthscale)
+tensor([[[1.]]], grad_fn=<ClampBackward>)
+
+# example3.csv:
+columns are `x`, `task 1`, and `task 2`, respectively.
+`task 1` has lengthscale 3, outputscale 200
+`task 2` has lengthscale 0.3, outputscale 200
+cross-covariance parameter is 200.
+print(model.covar_module.output_scale_kernel.covar_matrix.evaluate())
+tensor([[[200.0010, 200.0000],
+         [200.0000, 200.0010]]], grad_fn=<AddBackward0>)
+print(model.covar_module.in_task1.lengthscale)
+tensor([[[3.]]], grad_fn=<ClampBackward>)
+print(model.covar_module.in_task2.lengthscale)
+tensor([[[0.3000]]], grad_fn=<ClampBackward>)
+
+# example4.csv:
+columns are `x`, `task 1`, and `task 2`, respectively.
+`task 1` has lengthscale 3, outputscale 409
+`task 2` has lengthscale 0.3, outputscale 20
+cross-covariance parameter is 33.
+print(model.covar_module.output_scale_kernel.covar_matrix.evaluate())
+tensor([[[409.0000,  33.0000],
+         [ 33.0000,  20.0000]]], grad_fn=<AddBackward0>)
+print(model.covar_module.in_task1.lengthscale)
+tensor([[[3.]]], grad_fn=<ClampBackward>)
+print(model.covar_module.in_task2.lengthscale)
+tensor([[[0.3000]]], grad_fn=<ClampBackward>)
