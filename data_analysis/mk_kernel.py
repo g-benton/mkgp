@@ -131,7 +131,7 @@ class MultitaskRBFKernel(Kernel):
             for t2 in range(self.num_tasks):
                 inder += 1
                 if t1 == t2:
-                    if t1 == 1:
+                    if t1 == 0:
                         mat_list[inder] = self.in_task1.forward(x1, x2, **params)
                     else:
                         mat_list[inder] = self.in_task2.forward(x1, x2, **params)
