@@ -45,19 +45,20 @@ class SimpleModel(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-nsim = 10
-## EXAMPLE 1
+nsim = 500
+## EXAMPLE 2
 task1_mse = task2_mse = multi_mse_task1 = multi_mse_task2 = kron_mse_task1 = kron_mse_task2 = np.array(())
 n = 50
-ex1 = np.genfromtxt("example1.csv",delimiter=",")
+ex2 = np.genfromtxt("example2.csv",delimiter=",")
 for rep in range(nsim):
     print(rep)
-    train_indices = np.sort(np.random.randint(0,1000,n))
+    train_indices = np.concatenate([np.sort(np.random.randint(0,333,int(n/2))),
+                                    np.sort(np.random.randint(666,1000,int(n/2)))])
     test_indices = [i for i in range(1000) if i not in train_indices]
-    train_x = torch.tensor(ex1[train_indices,0]).type(torch.FloatTensor)
-    train_y = torch.tensor(ex1[train_indices,1:3]).type(torch.FloatTensor)
-    test_x = ex1[test_indices,0]
-    test_y = ex1[test_indices,1:3]
+    train_x = torch.tensor(ex2[train_indices,0]).type(torch.FloatTensor)
+    train_y = torch.tensor(ex2[train_indices,1:3]).type(torch.FloatTensor)
+    test_x = ex2[test_indices,0]
+    test_y = ex2[test_indices,1:3]
     train_y[:,0] = train_y[:,0]+torch.randn((n))
     train_y[:,1] = train_y[:,1]+torch.randn((n)).mul(0.5)
 
@@ -216,22 +217,29 @@ mse = np.stack([np.concatenate([np.repeat("Multi",2*nsim),
                           task1_mse,
                           task2_mse])],axis=1)
 
-np.savetxt("ex1_mse.csv",mse,delimiter=",",fmt="%s")
+np.savetxt("ex2_interval_mse.csv",mse,delimiter=",",fmt="%s")
 
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,0],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,1],color="C0")
-plt.show()
-
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,0],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,1],color="C0")
-plt.show()
-
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),task1mean.detach().numpy(),color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),task2mean.detach().numpy(),color="C0")
-plt.show()
+#plt.subplot(3,1,1)
+#plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,0],color="C1")
+#plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,1],color="C0")
+#plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+#plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,0],color="C1")
+#plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+#plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,1],color="C0")
+#
+#plt.subplot(3,1,2)
+#plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,0],color="C1")
+#plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,1],color="C0")
+#plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+#plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,0],color="C1")
+#plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+#plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,1],color="C0")
+#
+#plt.subplot(3,1,3)
+#plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,0],color="C1")
+#plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,1],color="C0")
+#plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+#plt.plot(eval_x.detach().numpy(),task1mean.detach().numpy(),color="C1")
+#plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+#plt.plot(eval_x.detach().numpy(),task2mean.detach().numpy(),color="C0")
+#plt.show()

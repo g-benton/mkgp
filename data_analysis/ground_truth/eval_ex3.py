@@ -45,19 +45,19 @@ class SimpleModel(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-nsim = 10
-## EXAMPLE 1
+nsim = 500
+## EXAMPLE 3
 task1_mse = task2_mse = multi_mse_task1 = multi_mse_task2 = kron_mse_task1 = kron_mse_task2 = np.array(())
 n = 50
-ex1 = np.genfromtxt("example1.csv",delimiter=",")
+ex3 = np.genfromtxt("example3.csv",delimiter=",")
 for rep in range(nsim):
     print(rep)
     train_indices = np.sort(np.random.randint(0,1000,n))
     test_indices = [i for i in range(1000) if i not in train_indices]
-    train_x = torch.tensor(ex1[train_indices,0]).type(torch.FloatTensor)
-    train_y = torch.tensor(ex1[train_indices,1:3]).type(torch.FloatTensor)
-    test_x = ex1[test_indices,0]
-    test_y = ex1[test_indices,1:3]
+    train_x = torch.tensor(ex3[train_indices,0]).type(torch.FloatTensor)
+    train_y = torch.tensor(ex3[train_indices,1:3]).type(torch.FloatTensor)
+    test_x = ex3[test_indices,0]
+    test_y = ex3[test_indices,1:3]
     train_y[:,0] = train_y[:,0]+torch.randn((n))
     train_y[:,1] = train_y[:,1]+torch.randn((n)).mul(0.5)
 
@@ -216,22 +216,4 @@ mse = np.stack([np.concatenate([np.repeat("Multi",2*nsim),
                           task1_mse,
                           task2_mse])],axis=1)
 
-np.savetxt("ex1_mse.csv",mse,delimiter=",",fmt="%s")
-
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,0],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,1],color="C0")
-plt.show()
-
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,0],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,1],color="C0")
-plt.show()
-
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),task1mean.detach().numpy(),color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),task2mean.detach().numpy(),color="C0")
-plt.show()
+np.savetxt("ex3_mse.csv",mse,delimiter=",",fmt="%s")

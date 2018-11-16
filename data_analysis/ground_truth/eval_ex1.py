@@ -45,7 +45,7 @@ class SimpleModel(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-nsim = 10
+nsim = 500
 ## EXAMPLE 1
 task1_mse = task2_mse = multi_mse_task1 = multi_mse_task2 = kron_mse_task1 = kron_mse_task2 = np.array(())
 n = 50
@@ -218,20 +218,20 @@ mse = np.stack([np.concatenate([np.repeat("Multi",2*nsim),
 
 np.savetxt("ex1_mse.csv",mse,delimiter=",",fmt="%s")
 
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,0],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,1],color="C0")
-plt.show()
-
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,0],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,1],color="C0")
-plt.show()
-
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
-plt.plot(eval_x.detach().numpy(),task1mean.detach().numpy(),color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
-plt.plot(eval_x.detach().numpy(),task2mean.detach().numpy(),color="C0")
-plt.show()
+#plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+#plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,0],color="C1")
+#plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+#plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,1],color="C0")
+#plt.show()
+#
+#plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+#plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,0],color="C1")
+#plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+#plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,1],color="C0")
+#plt.show()
+#
+#plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+#plt.plot(eval_x.detach().numpy(),task1mean.detach().numpy(),color="C1")
+#plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+#plt.plot(eval_x.detach().numpy(),task2mean.detach().numpy(),color="C0")
+#plt.show()
