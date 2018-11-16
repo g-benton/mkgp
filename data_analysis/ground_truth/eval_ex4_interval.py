@@ -55,10 +55,10 @@ for rep in range(nsim):
     train_indices = np.concatenate([np.sort(np.random.randint(0,333,int(n/2))),
                                     np.sort(np.random.randint(666,1000,int(n/2)))])
     test_indices = [i for i in range(1000) if i not in train_indices]
-    train_x = torch.tensor(ex3[train_indices,0]).type(torch.FloatTensor)
-    train_y = torch.tensor(ex3[train_indices,1:3]).type(torch.FloatTensor)
-    test_x = ex3[test_indices,0]
-    test_y = ex3[test_indices,1:3]
+    train_x = torch.tensor(ex4[train_indices,0]).type(torch.FloatTensor)
+    train_y = torch.tensor(ex4[train_indices,1:3]).type(torch.FloatTensor)
+    test_x = ex4[test_indices,0]
+    test_y = ex4[test_indices,1:3]
     train_y[:,0] = train_y[:,0]+torch.randn((n))
     train_y[:,1] = train_y[:,1]+torch.randn((n)).mul(0.5)
 
