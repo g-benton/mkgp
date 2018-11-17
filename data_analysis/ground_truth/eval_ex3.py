@@ -45,7 +45,7 @@ class SimpleModel(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-nsim = 500
+nsim = 100
 ## EXAMPLE 3
 task1_mse = task2_mse = multi_mse_task1 = multi_mse_task2 = kron_mse_task1 = kron_mse_task2 = np.array(())
 n = 50
@@ -58,7 +58,7 @@ for rep in range(nsim):
     train_y = torch.tensor(ex3[train_indices,1:3]).type(torch.FloatTensor)
     test_x = ex3[test_indices,0]
     test_y = ex3[test_indices,1:3]
-    train_y[:,0] = train_y[:,0]+torch.randn((n))
+    train_y[:,0] = train_y[:,0]+torch.randn((n)).mul(0.5)
     train_y[:,1] = train_y[:,1]+torch.randn((n)).mul(0.5)
 
     # FIT MULTITASK/MULTIKERNEL METHOD
