@@ -56,7 +56,7 @@ class MultitaskRBFKernel(Kernel):
         #)
         # self.within_covar_module = gpytorch.kernels.RBFKernel()
         self.output_scale_kernel = IndexKernel(num_tasks=num_tasks, batch_size=1,
-                                               rank=1, prior=task_covar_prior)
+                                               rank=num_tasks, prior=task_covar_prior)
         # self.in_task_covar = [gpytorch.kernels.RBFKernel() for _ in range(num_tasks)]
         self.in_task1 = gpytorch.kernels.RBFKernel()
         self.in_task2 = gpytorch.kernels.RBFKernel()
