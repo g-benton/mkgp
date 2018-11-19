@@ -16,10 +16,22 @@ from data_gen import data_gen
 
 
 def main():
-    num_pts = 40
-    num_train = 15
-    all_x = torch.linspace(0, 50, num_pts)
     num_trial = 100
+    num_pts = 100
+    # num_train = 15
+    all_x = torch.linspace(0, 10, num_pts)
+
+    ## subset data into training and heldout points ##
+    all_inds = [i for i in range(num_pts)]
+    holdout_inds = all_inds[25:75]
+    train_inds = [i for i in range(num_pts) if i not in holdout_inds]
+    # holdout_inds = [i for i in range(num_pts) if i not in inds]
+
+    train_x = all_x[train_inds]
+    holdout_x = all_x[holdout_inds]
+
+    ## set the testing points ##
+    test_x = all_x
 
     all_mk_error1 = [None for _ in range(num_trial)]
     all_mk_error2 = [None for _ in range(num_trial)]
@@ -33,23 +45,15 @@ def main():
         y1, y1_mean, y2, y2_mean = data_gen(all_x)
         stack_y = torch.stack([y1, y2], -1)[0]
 
-        ## subset data into training and heldout points ##
-        indices = random.sample(range(num_pts), num_train)
-        inds = [i for i in sorted(indices)]
-        holdout_inds = [i for i in range(num_pts) if i not in inds]
-
-        train_x = all_x[inds]
-        train_y = stack_y[inds, :]
-        holdout_x = all_x[holdout_inds]
+        train_y = stack_y[train_inds, :]
         holdout_y = stack_y[holdout_inds, :]
 
-        ## set the testing points ##
-        test_x = all_x
         test_y1 = y1
         test_y2 = y2
 
         ## get out mean predictions ##
-        mk_mean = mk_tester(train_x, train_y, test_x);
+        model_out = mk_tester(train_x, train_y, test_x);
+        mk_mean = model_out.mean
         # print("multi-kernel done")
         rbf_mean = indep_rbf(train_x, train_y, test_x);
         # print("rbf done")
@@ -73,6 +77,7 @@ def main():
         all_mt_error1[trial] = (mt_mean1 - test_y1).pow(2).mean()
         all_mt_error2[trial] = (mt_mean2 - test_y2).pow(2).mean()
 
+
         print("trial ", trial, " done")
 
     # print("MK ERROR: ", mk_error)
@@ -80,7 +85,7 @@ def main():
     # print("MT ERROR: ", mt_error)
 
     # plotting #
-    boxplot_list = [np.array(all_mk_error2), np.array(all_rbf_error2), np.array(all_mt_error2)]
+    boxplot_list = [np.array(all_mk_error1), np.array(all_rbf_error1), np.array(all_mt_error1)]
     fig = plt.figure(1, figsize=(9, 6))
     ax = fig.add_subplot(111)
     bpl = ax.boxplot(boxplot_list)
@@ -121,15 +126,12 @@ def main():
                           all_rbf_error1,
                           all_rbf_error2])],axis=1)
 
-    np.savetxt("all_mse.csv", mse, delimiter=",", fmt="%s")
-
-    # all_mse = np.column_stack((np.array(all_mk_error), np.array(all_rbf_error), np.array(all_mt_error)))
-    # np.savetxt("all_mse.csv", all_mse)
+    np.savetxt("all_interval_mse.csv", mse, delimiter=",", fmt="%s")
 
 
 if __name__ == '__main__':
     main()
 
-# list = [i for i in range(5)]
-# math.mean
-# out = np.array(list)
+list = [i for i in range(5)]
+out = np.array(list)
+out

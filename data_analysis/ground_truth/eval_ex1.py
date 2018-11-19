@@ -6,7 +6,7 @@ import gpytorch
 from matplotlib import pyplot as plt
 import sys
 
-sys.path.append("/Users/davidk/school/mkgp/data_analysis/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/data_analysis/")
 import mk_kernel
 
 class MultitaskModel(gpytorch.models.ExactGP):
@@ -96,7 +96,7 @@ for rep in range(nsim):
         eval_x = torch.linspace(0,10,1000)
         predictions = likelihood(model(eval_x))
         mean = predictions.mean
-        #lower,upper = predictions.confidence_region()
+        lower,upper = predictions.confidence_region()
 
     multi_mse_task1 = np.append(multi_mse_task1, np.sum(np.power(mean[test_indices,0].numpy() - test_y[:,0],2))/np.shape(test_y)[0])
     multi_mse_task2 = np.append(multi_mse_task2, np.sum(np.power(mean[test_indices,1].numpy() - test_y[:,1],2))/np.shape(test_y)[0])

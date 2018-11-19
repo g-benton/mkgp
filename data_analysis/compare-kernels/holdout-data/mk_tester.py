@@ -68,8 +68,8 @@ def mk_tester(train_x, train_y, test_x):
         predictions = likelihood(model(test_x))
         mean = predictions.mean
 
-
-    return mean
+    return likelihood(model(test_x))
+    # return mean
 
 
 if __name__ == '__main__':
