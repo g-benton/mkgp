@@ -39,6 +39,7 @@ def main():
     ## get out mean predictions ##
     model_out = mk_tester(train_x, train_y, test_x);
     mk_mean = model_out.mean
+    lower, upper = model_out.confidence_region()
     # mk_lower, mk_upper = model_out.confidence_region()
     print("multi-kernel done")
     rbf_mean = indep_rbf(train_x, train_y, test_x);

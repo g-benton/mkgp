@@ -149,7 +149,7 @@ class MultitaskRBFKernel(Kernel):
 
         for ind, scale in enumerate(scale_mat):
             mat_list[ind] = scale * mat_list[ind]
-
+        # print(mat_list.shape)    
         row1 = torch.cat([mat_list[0], mat_list[1]], 2)
         row2 = torch.cat([mat_list[2], mat_list[3]], 2)
 

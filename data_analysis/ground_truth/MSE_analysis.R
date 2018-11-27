@@ -2,12 +2,12 @@ library(ggplot2)
 #library(cowplot)
 library(dplyr)
 library(tidyr)
-
+setwd("~/Google Drive/Fall 18/ORIE6741/mkgp/data_analysis/compare-kernels/holdout-data/")
 #theme_set(theme_bw())
 
 tasks <- "example1.csv"
-mse_unif <- "ex1_mse.csv"
-mse_int <- "ex1_interval_mse.csv"
+mse_unif <- "all_mse.csv"
+mse_int <- "all_interval_mse.csv"
 
 mse_plots <- function(tasks,mse_unif,mse_int) {
   ex1_tasks <- read.csv(tasks,header=F) %>%

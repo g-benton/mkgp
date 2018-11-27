@@ -2,7 +2,7 @@ import math
 import torch
 import gpytorch
 import matplotlib.pyplot as plt
-
+import seaborn as sns
 
 def data_gen(test_points, num_samples=1):
     # test_points = torch.linspace(0, 10, 100)
@@ -38,8 +38,8 @@ def data_gen(test_points, num_samples=1):
     likelihood1.eval();
     preds = likelihood1(model1(test_points))
     mod1_means = model1(test_points).sample(sample_shape=torch.Size([num_samples]))
-
     model2.eval();
+
     likelihood2.eval();
     preds = likelihood2(model2(test_points))
     mod2_means = model2(test_points).sample(sample_shape=torch.Size([num_samples]))
@@ -60,19 +60,22 @@ def data_gen(test_points, num_samples=1):
 
 
 def main():
-    test_data = torch.linspace(0,50, 100)
+    test_data = torch.linspace(0,50, 1000)
 
     mod1, mean1, mod2, mean2 = data_gen(test_data, num_samples=1)
     # mod1 = mod1[0]
     # mod2 = mod2[0]
-
-    plt.subplot(1, 2, 1)
-    plt.plot(test_data.numpy(), mod1[0].numpy(), 'b*')
-    plt.plot(test_data.numpy(), mean1[0].numpy(), 'k')
+    true_col = sns.xkcd_palette(["windows blue"])[0]
+    mod_col = sns.xkcd_palette(["amber"])[0]
+    
+    plt.figure()
+    plt.title("Multi-Task Data")
+    # plt.plot(test_data.numpy(), mod1[0].numpy(), 'b*')
+    plt.plot(test_data.numpy(), mean1[0].numpy(), c=true_col)
     # plt.plot(test_data.numpy(), mean1.detach().numpy())
-    plt.subplot(1, 2, 2)
-    plt.plot(test_data.numpy(), mod2[0].numpy(), 'b*')
-    plt.plot(test_data.numpy(), mean2[0].numpy(), 'k')
+    # plt.subplot(1, 2, 2)
+    # plt.plot(test_data.numpy(), mod2[0].numpy(), 'b*')
+    plt.plot(test_data.numpy(), mean2[0].numpy(), c=mod_col)
     # plt.plot(test_data.numpy(), mean2.detach().numpy())
     plt.show()
 
