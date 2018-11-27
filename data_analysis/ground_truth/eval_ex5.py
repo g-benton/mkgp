@@ -46,21 +46,20 @@ class SimpleModel(gpytorch.models.ExactGP):
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
 nsim = 1
-## EXAMPLE 1
+## EXAMPLE 5
 task1_mse = task2_mse = multi_mse_task1 = multi_mse_task2 = kron_mse_task1 = kron_mse_task2 = np.array(())
 n = 50
-ex1 = np.genfromtxt("example1.csv",delimiter=",")
+ex5 = np.genfromtxt("example5.csv",delimiter=",")
 for rep in range(nsim):
     print(rep)
-    train_indices = np.concatenate([np.sort(np.random.randint(0,333,int(n/2))),
-                                    np.sort(np.random.randint(666,1000,int(n/2)))])
+    train_indices = np.sort(np.random.randint(0,1000,n))
     test_indices = [i for i in range(1000) if i not in train_indices]
-    train_x = torch.tensor(ex1[train_indices,0]).type(torch.FloatTensor)
-    train_y = torch.tensor(ex1[train_indices,1:3]).type(torch.FloatTensor)
-    test_x = ex1[test_indices,0]
-    test_y = ex1[test_indices,1:3]
-    train_y[:,0] = train_y[:,0]+torch.randn((n)).mul(0.5)
-    train_y[:,1] = train_y[:,1]+torch.randn((n)).mul(0.5)
+    train_x = torch.tensor(ex5[train_indices,0]).type(torch.FloatTensor)
+    train_y = torch.tensor(ex5[train_indices,1:3]).type(torch.FloatTensor)
+    test_x = ex5[test_indices,0]
+    test_y = ex5[test_indices,1:3]
+    train_y[:,0] = train_y[:,0]+torch.randn((n)).mul(1)
+    train_y[:,1] = train_y[:,1]+torch.randn((n)).mul(1)
 
     # FIT MULTITASK/MULTIKERNEL METHOD
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
@@ -217,56 +216,59 @@ mse = np.stack([np.concatenate([np.repeat("Multi",2*nsim),
                           task1_mse,
                           task2_mse])],axis=1)
 
-#np.savetxt("ex1_interval_mse.csv",mse,delimiter=",",fmt="%s")
+#np.savetxt("ex5_mse.csv",mse,delimiter=",",fmt="%s")
 
-plt.subplot(3,2,1)
+
+plt.subplot(2,3,1)
 plt.fill_between(eval_x.detach().numpy(),
                  lower.detach().numpy()[:,0],
                  upper.detach().numpy()[:,0],color="C0",alpha=0.3)
 plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,0],color="C0")
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+plt.plot(eval_x.detach().numpy(),ex5[:,1],color="black")
 plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,0],color="C0")
-plt.title("Task 1")
-plt.ylabel("MK")
+plt.title("MK")
+plt.ylabel("Task 1")
 
-plt.subplot(3,2,2)
+plt.subplot(2,3,4)
 plt.fill_between(eval_x.detach().numpy(),
                  lower.detach().numpy()[:,1],
                  upper.detach().numpy()[:,1],color="C1",alpha=0.3)
 plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,1],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+plt.plot(eval_x.detach().numpy(),ex5[:,2],color="black")
 plt.plot(eval_x.detach().numpy(),mean.detach().numpy()[:,1],color="C1")
-plt.title("Task 2")
+plt.ylabel("Task 2")
 
-plt.subplot(3,2,3)
+plt.subplot(2,3,2)
 plt.fill_between(eval_x.detach().numpy(),
                  kronlower.detach().numpy()[:,0],
                  kronupper.detach().numpy()[:,0],color="C0",alpha=0.3)
 plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,0],color="C0")
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+plt.plot(eval_x.detach().numpy(),ex5[:,1],color="black")
 plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,0],color="C0")
-plt.ylabel("Kron")
-plt.subplot(3,2,4)
+plt.title("Kron")
+
+plt.subplot(2,3,5)
 plt.fill_between(eval_x.detach().numpy(),
                  kronlower.detach().numpy()[:,1],
                  kronupper.detach().numpy()[:,1],color="C1",alpha=0.3)
 plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,1],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+plt.plot(eval_x.detach().numpy(),ex5[:,2],color="black")
 plt.plot(eval_x.detach().numpy(),kronmean.detach().numpy()[:,1],color="C1")
 
-plt.subplot(3,2,5)
+plt.subplot(2,3,3)
 plt.fill_between(eval_x.detach().numpy(),
                  task1lower.detach().numpy(),
                  task1upper.detach().numpy(),color="C0",alpha=0.3)
 plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,0],color="C0")
-plt.plot(eval_x.detach().numpy(),ex1[:,1],color="black")
+plt.plot(eval_x.detach().numpy(),ex5[:,1],color="black")
 plt.plot(eval_x.detach().numpy(),task1mean.detach().numpy(),color="C0")
-plt.ylabel("Independent RBF")
-plt.subplot(3,2,6)
+plt.title("Independent RBF")
+
+plt.subplot(2,3,6)
 plt.fill_between(eval_x.detach().numpy(),
                  task2lower.detach().numpy(),
                  task2upper.detach().numpy(),color="C1",alpha=0.3)
 plt.scatter(train_x.detach().numpy(),train_y.detach().numpy()[:,1],color="C1")
-plt.plot(eval_x.detach().numpy(),ex1[:,2],color="black")
+plt.plot(eval_x.detach().numpy(),ex5[:,2],color="black")
 plt.plot(eval_x.detach().numpy(),task2mean.detach().numpy(),color="C1")
 plt.show()
