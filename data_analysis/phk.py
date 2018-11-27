@@ -32,10 +32,17 @@ train_x = torch.tensor(range(len(nav))).float()
 train_y = torch.stack([torch.tensor(nav),torch.tensor(price)],-1).float()
 train_y[:,0] = train_y[:,0] - torch.mean(train_y[:,0])
 train_y[:,1] = train_y[:,1] - torch.mean(train_y[:,1])
+<<<<<<< HEAD
+print(train_y.shape)
+train_xold = torch.linspace(0, 1, 100)
+test_xold = torch.linspace(0.1, 1.1, 52)
+train_yold = torch.stack([torch.sin(train_xold * (4 * math.pi)) + torch.randn(train_xold.size()) * 0.2 + 1,torch.cos(train_xold * (2 * math.pi)) + torch.randn(train_xold.size()) * 0.2,], -1)
+=======
 #train_y.shape
 #train_xold = torch.linspace(0, 1, 100)
 #test_xold = torch.linspace(0.1, 1.1, 52)
 #train_yold = torch.stack([torch.sin(train_xold * (4 * math.pi)) + torch.randn(train_xold.size()) * 0.2 + 1,torch.cos(train_xold * (2 * math.pi)) + torch.randn(train_xold.size()) * 0.2,], -1)
+>>>>>>> 10f066a8daaf2b08647794cb59a9c45afc223dd7
 # train_y1 = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
 # train_y2 = torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
 # train_y = torch.cat((train_y1, train_y2), 0)

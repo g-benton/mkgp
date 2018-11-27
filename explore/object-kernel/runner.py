@@ -29,9 +29,9 @@ class MultitaskModel(gpytorch.models.ExactGP):
 def main():
 
     ## set up data ##
-    train_x = torch.linspace(0, 1, 100)
-    test_x = torch.linspace(0.1, 1.1, 52)
-    train_y = torch.stack([torch.sin(train_x * (4 * math.pi)) + torch.randn(train_x.size()) * 0.2 + 1,torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,], -1)
+    train_x = torch.linspace(0, 4, 1000)
+    test_x = torch.linspace(0.1, 4, 52)
+    train_y = torch.stack([torch.sin(train_x * (6 * math.pi)) + torch.randn(train_x.size()) * 0.2 + 1,torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,], -1)
     # train_y1 = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
     # train_y2 = torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
     # train_y = torch.cat((train_y1, train_y2), 0)
@@ -39,7 +39,8 @@ def main():
     ## set up model ##
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
     model = MultitaskModel(train_x, train_y, likelihood)
-    model.covar_module.in_task1.log_lengthscale.data[0][0][0] = -5
+    model.covar_module.in_task1.log_lengthscale.data[0][0][0] = -2
+    model.covar_module.in_task2.log_lengthscale.data[0][0][0] = -10
     # model.covar_module.log_task_lengthscales = torch.Tensor([math.log(2.5), math.log(0.3)])
 
     model.train();

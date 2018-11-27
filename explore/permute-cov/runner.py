@@ -32,6 +32,7 @@ def main():
     train_x = torch.linspace(0, 1, 100)
     test_x = torch.linspace(0.1, 1.1, 52)
     train_y = torch.stack([torch.sin(train_x * (4 * math.pi)) + torch.randn(train_x.size()) * 0.2 + 1,torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,], -1)
+    train_y.shape
     # train_y1 = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
     # train_y2 = torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
     # train_y = torch.cat((train_y1, train_y2), 0)
@@ -47,8 +48,8 @@ def main():
         print(i)
     optimizer = torch.optim.Adam([{'params': model.parameters()}, ], lr=0.1)
 
-    optimizer.param_groups
-    model.likelihood.log_task_noises.data[0]
+    optimizer.param_groups;
+    model.likelihood.log_task_noises.data[0];
 
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
 

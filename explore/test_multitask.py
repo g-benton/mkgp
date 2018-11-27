@@ -48,9 +48,8 @@ model.train();
 likelihood.train();
 
 # Use the adam optimizer
-
-
-model.covar_module.task_covar_module.covar_matrix.evaluate()
+for i in model.named_parameters():
+    print(i)
 
 
 optimizer = torch.optim.Adam([
@@ -90,6 +89,7 @@ with torch.no_grad(), gpytorch.fast_pred_var():
     test_x = torch.linspace(0, 1, 51)
     predictions = likelihood(model(test_x))
     mean = predictions.mean
+    mod_mean = model(test_x).mean
     lower, upper = predictions.confidence_region()
 
 # This contains predictions for both tasks, flattened out
@@ -100,6 +100,7 @@ with torch.no_grad(), gpytorch.fast_pred_var():
 y1_ax.plot(train_x.detach().numpy(), train_y[:, 0].detach().numpy(), 'k*')
 # Predictive mean as blue line
 y1_ax.plot(test_x.numpy(), mean[:, 0].numpy(), 'b')
+y1_ax.plot(test_x.numpy(), mod_mean[:, 0].numpy(), 'k')
 # Shade in confidence
 y1_ax.fill_between(test_x.numpy(), lower[:, 0].numpy(), upper[:, 0].numpy(), alpha=0.5)
 y1_ax.set_ylim([-3, 3])
@@ -110,6 +111,7 @@ y1_ax.set_title('Observed Values (Likelihood)')
 y2_ax.plot(train_x.detach().numpy(), train_y[:, 1].detach().numpy(), 'k*')
 # Predictive mean as blue line
 y2_ax.plot(test_x.numpy(), mean[:, 1].numpy(), 'b')
+y2_ax.plot(test_x.numpy(), mod_mean[:, 1].numpy(), 'k')
 # Shade in confidence
 y2_ax.fill_between(test_x.numpy(), lower[:, 1].numpy(), upper[:, 1].numpy(), alpha=0.5)
 y2_ax.set_ylim([-3, 3])
