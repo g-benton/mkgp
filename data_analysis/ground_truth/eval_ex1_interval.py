@@ -6,8 +6,9 @@ import gpytorch
 from matplotlib import pyplot as plt
 import sys
 
-sys.path.append("/Users/davidk/school/mkgp/data_analysis/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/data_analysis/")
 import mk_kernel
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/data_analysis/ground_truth/")
 
 class MultitaskModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
@@ -61,7 +62,7 @@ for rep in range(nsim):
     test_y = ex1[test_indices,1:3]
     train_y[:,0] = train_y[:,0]+torch.randn((n)).mul(0.5)
     train_y[:,1] = train_y[:,1]+torch.randn((n)).mul(0.5)
-
+    print("train_y shape = ", train_y.shape)
     # FIT MULTITASK/MULTIKERNEL METHOD
     likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=2)
     model = MultitaskModel(train_x,train_y,likelihood)

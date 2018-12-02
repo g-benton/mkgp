@@ -1,0 +1,5 @@
+Collecting torch
+  Using cached https://files.pythonhosted.org/packages/ea/89/cf01b153c80977b4649404612f0ff6ad636e11d1a0bbcae6ec3bde4ffa19/torch-0.4.1-cp37-cp37m-macosx_10_7_x86_64.whl
+Collecting torchvision
+  Downloading https://files.pythonhosted.org/packages/ca/0d/f00b2885711e08bd71242ebe7b96561e6f6d01fdb4b9dcf4d37e2e13c5e1/torchvision-0.2.1-py2.py3-none-any.whl (54kB)
+Collecting pytorch-nightly

@@ -76,12 +76,12 @@ for i in range(n_iter):
 model.eval();
 likelihood.eval();
 
-# out = model(test_x)
-#
-# temp_mat = model.covar_module(test_x).evaluate()
-# temp_mat.shape
-# out.covariance_matrix.shape
-# Initialize plots
+out = model(train_x)
+
+temp_mat = model.covar_module(train_x).evaluate()
+temp_mat.shape
+out.covariance_matrix.shape
+Initialize plots
 f, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))
 
 # # Make predictions
