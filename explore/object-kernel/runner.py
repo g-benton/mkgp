@@ -29,7 +29,7 @@ class MultitaskModel(gpytorch.models.ExactGP):
 def main():
 
     ## set up data ##
-    train_x = torch.linspace(0, 4, 1000)
+    train_x = torch.linspace(0, 4, 100)
     test_x = torch.linspace(0.1, 4, 52)
     train_y = torch.stack([torch.sin(train_x * (6 * math.pi)) + torch.randn(train_x.size()) * 0.2 + 1,torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2,], -1)
     # train_y1 = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
@@ -47,8 +47,8 @@ def main():
     likelihood.train();
 
 
-    for i in model.named_parameters():
-        print(i)
+    # for i in model.named_parameters():
+    #     print(i)
     optimizer = torch.optim.Adam([{'params': model.parameters()}, ], lr=0.1)
 
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
@@ -60,13 +60,13 @@ def main():
         loss = -mll(output, train_y)
         loss.backward()
         # print('Iter %d/%d - Loss: %.3f' % (i + 1, n_iter, loss.item()))
-        print('Iter %d/%d - Loss: %.3f   log_length1: %.3f log_length2: %.3f log_noise1: %.3f  log_noise2: %.3f' % (
-            i + 1, n_iter, loss.item(),
-            model.covar_module.in_task1.lengthscale.item(),
-            model.covar_module.in_task2.lengthscale.item(),
-            model.likelihood.log_task_noises.data[0][0],
-            model.likelihood.log_task_noises.data[0][1]
-        ))
+        # print('Iter %d/%d - Loss: %.3f   log_length1: %.3f log_length2: %.3f log_noise1: %.3f  log_noise2: %.3f' % (
+        #     i + 1, n_iter, loss.item(),
+        #     model.covar_module.in_task1.lengthscale.item(),
+        #     model.covar_module.in_task2.lengthscale.item(),
+        #     model.likelihood.log_task_noises.data[0][0],
+        #     model.likelihood.log_task_noises.data[0][1]
+        # ))
 
         # for ind, ii in enumerate(model.named_parameters()):
         #     print(ii[1].grad)
@@ -84,6 +84,9 @@ def main():
         # test_x = torch.linspace(0, 1, 51)
         predictions = likelihood(model(test_x))
         mean = predictions.mean
+        lower, upper = predictions.confidence_region()
+
+
 
 
     f, (y1_ax, y2_ax) = plt.subplots(1, 2, figsize=(8, 3))

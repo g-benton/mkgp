@@ -21,6 +21,7 @@ def data_gen(test_points, num_samples=1):
     ## set up models ##
     sd1 = 0.3
     sd2 = 0.5
+    sd3 = 0.5
     likelihood1 = gpytorch.likelihoods.GaussianLikelihood()
     model1 = ExactGPModel(None, None, likelihood1)
     model1.likelihood.log_noise.data[0][0] = math.log(sd1)
@@ -33,30 +34,44 @@ def data_gen(test_points, num_samples=1):
     model2.covar_module.log_outputscale.data[0] = math.log(4)
     model2.covar_module.base_kernel.log_lengthscale.data[0,0,0] = math.log(1)
 
+    likelihood3 = gpytorch.likelihoods.GaussianLikelihood()
+    model3 = ExactGPModel(None, None, likelihood3)
+    model3.likelihood.log_noise.data[0][0] = math.log(sd3)
+    model3.covar_module.log_outputscale.data[0] = math.log(4)
+    model3.covar_module.base_kernel.log_lengthscale.data[0,0,0] = math.log(1)
+
     ## DRAW SAMPLES ##
     model1.eval();
     likelihood1.eval();
     preds = likelihood1(model1(test_points))
     mod1_means = model1(test_points).sample(sample_shape=torch.Size([num_samples]))
-    model2.eval();
 
+    model2.eval();
     likelihood2.eval();
     preds = likelihood2(model2(test_points))
     mod2_means = model2(test_points).sample(sample_shape=torch.Size([num_samples]))
-    # mod1_samples = preds.sample(sample_shape=torch.Size([num_samples]))
+
+    model3.eval();
+    likelihood3.eval();
+    preds = likelihood3(model3(test_points))
+    mod3_means = model3(test_points).sample(sample_shape=torch.Size([num_samples]))
+
     mod1_samples = torch.zeros(mod1_means.shape)
     mod2_samples = torch.zeros(mod2_means.shape)
+    mod3_samples = torch.zeros(mod3_means.shape)
 
     mod1_means.shape
     for samp in range(num_samples):
         mod1_samples[samp, :] = torch.normal(mean=mod1_means[samp, :], std=sd1)
+
         mod2_means[samp, :] = mod1_means[samp, :] + mod2_means[samp, :]
-        # mod2_samples[samp, :] = mod1_means[samp, :] + mod2_samples[samp, :]
         mod2_samples[samp, :] = torch.normal(mean=mod2_means[samp, :], std=sd2)
-    # mod2_samples = preds.sample(sample_shape=torch.Size([num_samples]))
-    # for sample in range(num_samples):
+
+        mod3_means[samp, :] = mod2_means[samp, :] - mod1_means[samp, :]
+        mod3_samples[samp, :] = torch.normal(mean=mod3_means[samp, :], std=sd3)
+
     ## there's more ##
-    return mod1_samples, mod1_means, mod2_samples, mod2_means
+    return mod1_samples, mod1_means, mod2_samples, mod2_means, mod3_samples, mod3_means
 
 
 def main():
@@ -67,7 +82,7 @@ def main():
     # mod2 = mod2[0]
     true_col = sns.xkcd_palette(["windows blue"])[0]
     mod_col = sns.xkcd_palette(["amber"])[0]
-    
+
     plt.figure()
     plt.title("Multi-Task Data")
     # plt.plot(test_data.numpy(), mod1[0].numpy(), 'b*')

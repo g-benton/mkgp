@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import math
 import torch
+from torch.nn import ModuleList
 import gpytorch
 from gpytorch.kernels import Kernel
 from gpytorch.kernels import RBFKernel, IndexKernel
@@ -20,7 +21,7 @@ def basis_vec(size, ind):
     vec[ind] = 1
     return vec
 
-class MultitaskRBFKernel(Kernel):
+class MultiKernel(Kernel):
     """
     Kernel supporting Kronecker style multitask Gaussian processes (where every data point is evaluated at every
     task) using :class:`gpytorch.kernels.IndexKernel` as a basic multitask kernel.
@@ -45,30 +46,20 @@ class MultitaskRBFKernel(Kernel):
 
     def __init__(
             self,
-            num_tasks,
-            rank=1,
+            kernel_list = None,
             batch_size=1,
-            task_covar_prior=None):
-
-        super(MultitaskRBFKernel, self).__init__()
-        #self.task_covar_module = IndexKernel(
-        #    num_tasks=num_tasks, batch_size=batch_size, rank=rank, prior=task_covar_prior
-        #)
-        # self.within_covar_module = gpytorch.kernels.RBFKernel()
-        self.output_scale_kernel = IndexKernel(num_tasks=num_tasks, batch_size=1,
-                                               rank=num_tasks, prior=task_covar_prior)
-        # self.in_task_covar = [gpytorch.kernels.RBFKernel() for _ in range(num_tasks)]
-        self.in_task1 = gpytorch.kernels.RBFKernel()
-        self.in_task2 = gpytorch.kernels.RBFKernel()
-        self.num_tasks = num_tasks
-        self.batch_size = 1
-        # We need gpytorch to know about the lengthscales - copied this from Kernel
-
-        # self.register_parameter(
-        #     name="log_task_lengthscales",
-        #     parameter=torch.nn.Parameter(log_task_lengthscales)
-        # )
-
+            task_covar_prior=None
+            ):
+        super(MultiKernel, self).__init__()
+        self.num_tasks = len(kernel_list)
+        self.output_scale_kernel = IndexKernel(num_tasks=self.num_tasks, batch_size=1,
+                                               rank=self.num_tasks, prior=task_covar_prior)
+        self.batch_size = batch_size
+        self.in_task_covar = ModuleList(
+            [
+                kernel_list[ii] for ii in range(self.num_tasks)
+            ]
+        )
     def perm_matrices(self, x1, x2):
         m = self.num_tasks
         n = self.num_tasks
@@ -120,40 +111,64 @@ class MultitaskRBFKernel(Kernel):
 
 
     def forward(self, x1, x2, **params):
+        n = torch.numel(x1)
+        m = torch.numel(x2)
+        # print("n = ", n)
 
-        # for kern in self.in_task_covar:
-        #     print(kern.forward(x1, x2, **params))
+        block_tens = torch.zeros((self.num_tasks**2, n, m))
 
-        mat_list = [None for _ in range(self.num_tasks**2)]
-
+        scale_mat = self.output_scale_kernel.covar_matrix.evaluate()
+        # print(scale_mat[0][0][1])
         inder = -1
         for t1 in range(self.num_tasks):
             for t2 in range(self.num_tasks):
                 inder += 1
                 if t1 == t2:
-                    if t1 == 0:
-                        mat_list[inder] = self.in_task1.forward(x1, x2, **params)
-                    else:
-                        mat_list[inder] = self.in_task2.forward(x1, x2, **params)
-
+                    # temp = self.in_task_covar[t1].forward(x1, x2, **params)
+                    # print("temp shape = ", temp.shape)
+                    # print("block shape = ", block_tens[inder].shape)
+                    block_tens[inder] = scale_mat[0][t1][t2] * self.in_task_covar[t1].forward(x1, x2, **params)
+                    # if t1 == 0:
+                    #     mat_list[inder] = self.in_task1.forward(x1, x2, **params)
+                    # else:
+                    #     mat_list[inder] = self.in_task2.forward(x1, x2, **params)
                 else:
-                    mat_list[inder] = self.sq_exp_mix(x1, x2, self.in_task1.lengthscale.item(),
-                                                      self.in_task2.lengthscale.item(), **params)
+                    block_tens[inder] = scale_mat[0][t1][t2] * self.sq_exp_mix(x1, x2, self.in_task_covar[t1].lengthscale.item(),
+                                    self.in_task_covar[t2].lengthscale.item(), **params)
+                # else:
+                #     mat_list[inder] = self.sq_exp_mix(x1, x2, self.in_task1.lengthscale.item(),
+                #                                       self.in_task2.lengthscale.item(), **params)
                     #____ MAT ___ = mix kernel mat
 
         ## combine matrices ##
         ## ONLY WORKS FOR TWO TASKS, FIX LATER ##
         # print(mat_list[0])
+        # print(scale_mat[0] * block_tens[0, :, :])
+        ## COMBINE INTO COVARIANCE ##
+        rows = torch.zeros((self.num_tasks, n, m*self.num_tasks))
 
-        scale_mat = self.output_scale_kernel.covar_matrix.evaluate().view(-1)
+        # make tensor of rows to concatenate #
+        # print(len(rows))
+        # print([ii for ii in range(self.num_tasks)])
+        scale_inder = -1
+        for row_ind in range(len(rows)):
+            scale_inder += 1
+            to_cat = tuple([block_tens[row_ind*self.num_tasks + ii]
+                                for ii in range(self.num_tasks)])
+            rows[row_ind] = torch.cat(to_cat, 1)
+            # print(rows[row_ind])
 
-        for ind, scale in enumerate(scale_mat):
-            mat_list[ind] = scale * mat_list[ind]
-        # print(mat_list.shape)    
-        row1 = torch.cat([mat_list[0], mat_list[1]], 2)
-        row2 = torch.cat([mat_list[2], mat_list[3]], 2)
+        # concatenate rows #
+        to_cat = tuple([rows[ii] for ii in range(rows.shape[0])])
+        multi_task_mat = torch.cat(to_cat, 0)
 
-        multi_task_mat = torch.cat([row1, row2], 1)[0]
+        # for ind, scale in enumerate(scale_mat):
+        #     mat_list[ind] = scale * mat_list[ind]
+        #
+        # row1 = torch.cat([mat_list[0], mat_list[1]], 2)
+        # row2 = torch.cat([mat_list[2], mat_list[3]], 2)
+        #
+        # multi_task_mat = torch.cat([row1, row2], 1)[0]
 
         l_perm, r_perm = self.perm_matrices(x1, x2)
         temp = l_perm.mm(multi_task_mat)
