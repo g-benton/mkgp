@@ -7,7 +7,7 @@ cust_theme <- theme_bw() + theme(
   axis.title = element_blank(), axis.ticks = element_blank(), 
   axis.text = element_blank(), strip.text = element_blank(), 
   strip.background = element_blank(), panel.spacing=unit(0,"lines"),
-  panel.border = element_rect(size = 0, color = "black"), 
+  panel.border = element_blank(),
   panel.grid = element_blank())
 
 # Variance/covariance
@@ -40,8 +40,20 @@ test <- ggplot(calc,aes(x=xj,y=xi,fill=cov)) +
   scale_x_continuous() +
   scale_fill_gradientn(colours=c("blue","cyan","white", "yellow","red"), values=scales::rescale(c(-1,0,1)))+
   facet_grid(task1~task2) +
-  cust_theme +
-  transition_states(states = l2,transition_length = 2,state_length = 0) +
-  labs(title = 'Task 1 lengthscale: 1; Task 2 lengthscale: {closest_state}', x = 'GDP per capita', y = 'life expectancy')
+  cust_theme
+  #transition_states(states = l2,transition_length = 2,state_length = 0) +
+  #labs(title = 'Task 1 lengthscale: 1; Task 2 lengthscale: {closest_state}', x = 'GDP per capita', y = 'life expectancy')
   
 test
+
+example <- calc %>%
+  mutate(example=ifelse(task1==1 & task2==2 & xi == 2 & xj ==3,
+                "yes","no"))
+
+ggplot(example,aes(x=xj,y=xi,fill=cov)) +
+  geom_tile(aes(width=example)) +
+  scale_y_reverse() +
+  scale_x_continuous() +
+  scale_fill_gradientn(colours=c("blue","cyan","white", "yellow","red"), values=scales::rescale(c(-1,0,1)))+
+  facet_grid(task1~task2) +
+  cust_theme
