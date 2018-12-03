@@ -54,7 +54,7 @@ def main():
         kronmean = kronpredictions.mean
         kronlower,kronupper = kronpredictions.confidence_region()
 
-    kronlower
+    print("lower = ", kronlower)
     return 1
 
 if __name__ == '__main__':

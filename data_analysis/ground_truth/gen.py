@@ -6,7 +6,7 @@ import gpytorch
 from matplotlib import pyplot as plt
 import sys
 
-sys.path.append("/Users/davidk/school/mkgp/data_analysis/")
+sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/data_analysis/")
 import mk_kernel
 
 # Domain will be x \in (0,10)
