@@ -39,6 +39,7 @@ def main():
     mk_model = MKModel(train_x,train_y,like)
     mk_model.train();
     like.train();
+
     optimizer = torch.optim.Adam([ {'params': mk_model.parameters()}, ], lr=0.1)
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(like, mk_model)
     n_iter = 50
@@ -54,7 +55,7 @@ def main():
         preds = like(mk_model(eval_x))
         pred_mean = preds.mean
         lower, upper = preds.confidence_region()
-    print("lower = ", lower)    
+    print("lower = ", lower)
 
     return 1
 
