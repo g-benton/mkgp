@@ -5,7 +5,8 @@ import torch
 import gpytorch
 import random
 import sys
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/single-task/")
+#sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/single-task/")
+sys.path.append("/Users/davidk/school/mkgp/bayes-opt/single-task/")
 from data_gen import data_gen
 from helper_functions import expected_improvement
 
@@ -18,7 +19,7 @@ def main():
     full_x = torch.linspace(low_x, high_x, num_pts)
     full_y = data_gen(full_x)
 
-    end_sample_count = 30
+    end_sample_count = 10
     n_start = 2
 
     obs_inds = random.sample(range(num_pts), n_start)
@@ -36,21 +37,24 @@ def main():
             return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
     entered = 0
-    while(len(obs_inds) < end_sample_count):
+    expec_improve = (1,) # trivial start
+    while(max(expec_improve) > 0.001):
         lh = gpytorch.likelihoods.GaussianLikelihood()
+        lh.log_noise.data[0,0] = -8
         model = ExactGPModel(full_x[obs_inds], full_y[obs_inds], lh)
 
         if entered:
             model.covar_module.base_kernel.log_lengthscale.data[0,0,0] = stored_length
+            model.covar_module.outputscale[0] = stored_out
 
         ## standard training stuff ##
         model.train();
         lh.train();
 
-        optimizer = torch.optim.Adam([ {'params': model.parameters()}, ], lr=0.1)
+        optimizer = torch.optim.Adam([ {'params': model.covar_module.parameters()}, ], lr=0.1)
         mll = gpytorch.mlls.ExactMarginalLogLikelihood(lh, model)
 
-        n_iter = 50
+        n_iter = 2
         for i in range(n_iter):
             optimizer.zero_grad()
             output = model(full_x[obs_inds])
@@ -60,6 +64,7 @@ def main():
 
         entered = 1
         stored_length = model.covar_module.base_kernel.log_lengthscale.data[0,0,0]
+        stored_out = model.covar_module.outputscale[0]
 
         ## do predictions ##
         model.eval();
@@ -85,7 +90,7 @@ def main():
         full_col = sns.xkcd_palette(["windows blue"])[0]
         gp_col = sns.xkcd_palette(["amber"])[0]
 
-        if len(obs_inds) % 5 == 0:
+        if len(obs_inds) % 1 == -1:
             plt.figure()
             plt.plot(full_x.numpy(), full_y.numpy(), c=full_col, ls='-')
             plt.plot(full_x[obs_inds].numpy(), full_y[obs_inds].numpy(), c=full_col, marker='.', ls="None")
@@ -94,6 +99,15 @@ def main():
             plt.fill_between(full_x.numpy(), lower.detach().numpy(), upper.detach().numpy(), alpha=0.5,
                 color=gp_col)
             plt.show()
+
+    plt.figure()
+    plt.plot(full_x.numpy(), full_y.numpy(), c=full_col, ls='-')
+    plt.plot(full_x[obs_inds].numpy(), full_y[obs_inds].numpy(), c=full_col, marker='.', ls="None")
+    plt.plot(full_x[int(max_ind)].numpy(), full_y[int(max_ind)].numpy(), marker="*", c='r')
+    plt.plot(full_x.numpy(), means.detach().numpy(), ls='-', c=gp_col)
+    plt.fill_between(full_x.numpy(), lower.detach().numpy(), upper.detach().numpy(), alpha=0.5,
+    color=gp_col)
+    plt.show()
 
 if __name__ == '__main__':
     main()
