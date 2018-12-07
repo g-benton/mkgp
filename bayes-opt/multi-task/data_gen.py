@@ -20,7 +20,7 @@ def data_gen(test_points, num_samples=1):
 
     ## set up models ##
     sd1 = 0.1
-    sd2 = 0.1
+    sd2 = 0.3
     likelihood1 = gpytorch.likelihoods.GaussianLikelihood()
     model1 = ExactGPModel(None, None, likelihood1)
     model1.likelihood.log_noise.data[0][0] = math.log(sd1)
@@ -60,7 +60,7 @@ def data_gen(test_points, num_samples=1):
 
 
 def main():
-    test_data = torch.linspace(0,50, 1000)
+    test_data = torch.linspace(0,10, 1000)
 
     mod1, mean1, mod2, mean2 = data_gen(test_data, num_samples=1)
     # mod1 = mod1[0]

@@ -45,7 +45,6 @@ if __name__ == '__main__':
     # fake_x = torch.Tensor([0.5]).type(torch.FloatTensor)
     # fake_y = torch.tensor([[10,10]]).type(torch.FloatTensor)
     model = MultitaskModel(obs_x, obs_y, lh)
-
     # lekern = model.covar_module(full_x)
     # lekern.diag()
     # print(lekern.evaluate())

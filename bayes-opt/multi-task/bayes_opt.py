@@ -30,14 +30,19 @@ def main():
     ## set up and inits ##
     low_x = 0
     high_x = 10
-    num_pts = 100
+    num_pts = 1000
 
     end_sample_count = 30 # this seems like a bad criteria...
     full_x = torch.linspace(low_x, high_x, num_pts)
     n_tasks = 2
     # full_y = gen_correlated_rbfs(full_x, _num_tasks=n_tasks)
     full_y = trash_genner(full_x) # this is just a holdover until I can do something better
+    _, y1, _, y2 = data_gen(full_x)
+    full_y = torch.stack([y1[0], y2[0]], -1)
 
+# plt.plot(full_x.numpy(), full_y[:, 0].numpy())
+# plt.plot(full_x.numpy(), full_y[:, 1].numpy())
+# plt.show()
     # get out starting points #
     n_start = 2
     obs_inds = random.sample(range(num_pts), n_start)
@@ -60,20 +65,22 @@ def main():
             covar_x = self.covar_module(x)
             return gpytorch.distributions.MultitaskMultivariateNormal(mean_x, covar_x)
 
-    lh = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
+    # lh = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
 
     ## set up parameter storage ##
-    # stored_lengths = [None for _ in range(n_tasks)]
+    stored_lengths = [None for _ in range(n_tasks)]
     # stored_covar_factor = None
     # stored_var = None
-    # entered = 0
+    entered = 0
 
     while(len(obs_inds) < end_sample_count):
-        model = MultitaskModel(obs_x, obs_y, lh)
-        # if entered:
+        lh = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
+        model = MultitaskModel(full_x[obs_inds], full_y[obs_inds, :], lh)
+
+        if entered:
         #     # overwrite parameters #
-        #     for tt in range(_num_tasks):
-        #         model.covar_module.in_task_covar[tt].log_lengthscale.data[0,0,0] = stored_lengths[tt]
+            for tt in range(n_tasks):
+                model.covar_module.in_task_covar[tt].log_lengthscale.data[0,0,0] = stored_lengths[tt]
         #     model.covar_module.output_scale_kernel.covar_factor = stored_covar_factor
         #     model.covar_module.output_scale_kernel.var = stored_var
         model.train();
@@ -89,22 +96,22 @@ def main():
         n_iter = 50
         for i in range(n_iter):
             optimizer.zero_grad()
-            output = model(obs_x)
-            loss = -mll(output, obs_y)
+            output = model(full_x[obs_inds])
+            loss = -mll(output, full_y[obs_inds, :])
             loss.backward()
             optimizer.step()
 
         ## store covar parameters ##
-        # entered = 1
-        # stored_lengths = [model.covar_module.in_task_covar[tt].log_lengthscale.data[0,0,0]
-        #                     for tt in range(_num_tasks)]
+        entered = 1
+        stored_lengths = [model.covar_module.in_task_covar[tt].log_lengthscale.data[0,0,0]
+                            for tt in range(n_tasks)]
         # stored_covar_factor = model.covar_module.output_scale_kernel.covar_factor
         # stored_var = model.covar_module.output_scale_kernel.var
 
         ## predict full domain ##
         lh.eval();
         model.eval();
-        pred = lh(model(full_x))
+        pred = model(full_x)
         dump = pred.covariance_matrix ## just to build the cache
 
         means = pred.mean[:, 0]
@@ -112,11 +119,18 @@ def main():
         lower, upper = pred.confidence_region()
 
         ## observe function at max of expected improvment ##
-        expec_improve = expected_improvement(means, sd, current_max)
-        max, max_ind = torch.max(expec_improve, 0)
-        obs_inds.append(int(max_ind))
-        obs_x = full_x[obs_inds]
-        obs_y = full_y[obs_inds, :]
+        found = 0
+        expec_improve = list(expected_improvement(means, sd, current_max).detach().numpy())
+        while not found:
+            max_ind = expec_improve.index(max(expec_improve))
+            if max_ind not in obs_inds:
+                obs_inds.append(int(max_ind))
+                found = 1
+            else:
+                expec_improve[max_ind] = min(expec_improve)
+        # max, max_ind = torch.max(expec_improve, 0)
+        # obs_x = full_x[obs_inds]
+        # obs_y = full_y[obs_inds, :]
 
         ## Plotting To Track Progress ##
         full_col = sns.xkcd_palette(["windows blue"])[0]
@@ -124,7 +138,7 @@ def main():
         if len(obs_inds) % 5 == 0:
             plt.figure()
             plt.plot(full_x.numpy(), full_y[:, 0].numpy(), c=full_col, ls='-')
-            plt.plot(obs_x.numpy(), obs_y[:, 0].numpy(), c=full_col, marker='.', ls="None")
+            plt.plot(full_x[obs_inds].numpy(), full_y[obs_inds, 0].numpy(), c=full_col, marker='.', ls="None")
             plt.plot(full_x[int(max_ind)].numpy(), full_y[int(max_ind), 0].numpy(), marker="*", c='r')
             plt.plot(full_x.numpy(), means.detach().numpy(), ls='-', c=gp_col)
             plt.fill_between(full_x.numpy(), lower[:, 0].detach().numpy(), upper[:, 0].detach().numpy(), alpha=0.5,
@@ -132,6 +146,8 @@ def main():
             plt.show()
 
         print("seen ", len(obs_inds), " observations")
+        print("observered ", obs_inds)
+        print("(", len(obs_inds), " points)")
 
     return 1
 
