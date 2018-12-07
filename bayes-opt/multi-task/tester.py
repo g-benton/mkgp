@@ -105,3 +105,7 @@ plt.show()
     # print(lower)
 
 y = torch.randn([5])
+list(y.numpy())
+def bleh():
+    return 1, 2
+ _ , here = bleh()

@@ -40,9 +40,9 @@ def main():
     _, y1, _, y2 = data_gen(full_x)
     full_y = torch.stack([y1[0], y2[0]], -1)
 
-# plt.plot(full_x.numpy(), full_y[:, 0].numpy())
-# plt.plot(full_x.numpy(), full_y[:, 1].numpy())
-# plt.show()
+    # plt.plot(full_x.numpy(), full_y[:, 0].numpy())
+    # plt.plot(full_x.numpy(), full_y[:, 1].numpy())
+    # plt.show()
     # get out starting points #
     n_start = 2
     obs_inds = random.sample(range(num_pts), n_start)
@@ -128,6 +128,8 @@ def main():
                 found = 1
             else:
                 expec_improve[max_ind] = min(expec_improve)
+                
+        current_max = full_y[obs_inds, 0].max()
         # max, max_ind = torch.max(expec_improve, 0)
         # obs_x = full_x[obs_inds]
         # obs_y = full_y[obs_inds, :]
