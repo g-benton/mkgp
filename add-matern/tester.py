@@ -28,10 +28,11 @@ diff = (x1_ - x2_).norm(2, dim=1)
 scaled_diff = diff.mul(math.sqrt(3.0)).div(mat_len)
 
 pre_term = math.sqrt(lmbd) * (math.pi/2.0)**(0.25) * math.exp(lmbd**2)
-in_term = (2 * torch.cosh(scaled_diff) - scaled_diff.exp().mul(torch.erf(lmbd.expand_as(diff) + diff.div(rbf_len))) - scaled_diff.exp().mul(torch.erf(lmbd.expand_as(diff) - diff.div(rbf_len)))
+in_term = (2 * torch.cosh(scaled_diff) - scaled_diff.exp().mul(torch.erf(lmbd.expand_as(diff) + diff.div(rbf_len))) - scaled_diff.exp().mul(torch.erf(lmbd.expand_as(diff) - diff.div(rbf_len))))
 
 
 
 test = torch.tensor(2.0)
 test.exp()
+test
 test.mul(-1).exp()

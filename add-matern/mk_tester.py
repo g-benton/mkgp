@@ -42,44 +42,28 @@ if __name__ == '__main__':
 
     model.train();
     likelihood.train();
-    model(train_x).covariance_matrix.shape
 
-    # scales = model.covar_module.output_scale_kernel.covar_matrix.evaluate()
-    # scales.shape
-    # scales[0][1][1] * model.covar_module.in_task_covar[1](train_x).evaluate()
-
-    # model.covar_module.mat_rbf_covar(train_x, train_x, 1.0, 1.0)
-    optimizer = torch.optim.Adam([{'params': model.parameters()}, ], lr=0.1)
+    optimizer = torch.optim.Adam([{'params': model.parameters()}, ], lr=0.01)
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
 
-    n_iter = 50
+    n_iter = 20
     for i in range(n_iter):
         optimizer.zero_grad()
         output = model(train_x)
         loss = -mll(output, train_y)
         loss.backward()
-        print('Iter %d/%d - Loss: %.3f' % (i + 1, n_iter, loss.item()))
-        # print('Iter %d/%d - Loss: %.3f   log_length1: %.3f log_length2: %.3f log_noise1: %.3f  log_noise2: %.3f' % (
-        #     i + 1, n_iter, loss.item(),
-        #     model.covar_module.in_task1.lengthscale.item(),
-        #     model.covar_module.in_task2.lengthscale.item(),
-        #     model.likelihood.log_task_noises.data[0][0],
-        #     model.likelihood.log_task_noises.data[0][1]
-        # ))
-
         optimizer.step()
 
     model.eval();
     likelihood.eval();
-
 
     with torch.no_grad(), gpytorch.fast_pred_var():
         # test_x = torch.linspace(0, 1, 51)
         pred_model = likelihood(model(train_x))
         # mean = predictions.mean
 
-    pred_model.covariance_matrix
-
+    lower, upper = pred_model.confidence_region()
+    print(lower)
     pred_mean = pred_model.mean
     pred_mean
     fig, (ax1, ax2) = plt.subplots(1, 2)

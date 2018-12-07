@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/add-matern/")
 
 def main():
-    xx = torch.linspace(0, 3, 100)
-    yy = torch.sin(xx * 2 * 3.1415)
+    xx = torch.linspace(0, 1, 100)
+    yy = 5*torch.sin(xx* (2 * math.pi)) + torch.randn(xx.size()) * 0.2
+    # yy = torch.sin(xx * 2 * 3.1415)
     class MatModel(gpytorch.models.ExactGP):
         def __init__(self, train_x, train_y, likelihood):
             super(MatModel, self).__init__(train_x, train_y, likelihood)
@@ -31,10 +32,10 @@ def main():
     pred_mean = pred.mean
 
     sample = pred.sample(sample_shape=torch.Size([1]))
-    # plt.plot(sample[0].detach().numpy())
-    # plt.show()
-    # plt.plot(pred_mean.detach().numpy())
-    # plt.show()
+    plt.plot(sample[0].detach().numpy())
+    plt.show()
+    plt.plot(pred_mean.detach().numpy())
+    plt.show()
 
     np.savez("training_data.npz", test_x=xx.numpy(), mat_data=sample[0].detach().numpy(), rbf_data=pred_mean.detach().numpy())
 if __name__ == '__main__':

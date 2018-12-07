@@ -1,7 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#! /usr/bin/env python3
+
+# from __future__ import absolute_import
+# from __future__ import division
+# from __future__ import print_function
+# from __future__ import unicode_literals
 import math
 import torch
 from torch.nn import ModuleList
@@ -11,15 +13,15 @@ from gpytorch.kernels import RBFKernel, IndexKernel
 #from gpytorch.kernels import IndexKernel
 from gpytorch.lazy import LazyTensor, NonLazyTensor, KroneckerProductLazyTensor, BlockDiagLazyTensor
 
-def kronecker_product(t1, t2,size_t1,size_t2):
-    fusion_tensor = torch.bmm(t1.unsqueeze(2), t2.unsqueeze(1))
-    fusion_tensor = fusion_tensor.view(-1, size_t1 * size_t2)
-    return fusion_tensor
-
-def basis_vec(size, ind):
-    vec = torch.zeros((size))
-    vec[ind] = 1
-    return vec
+# def kronecker_product(t1, t2,size_t1,size_t2):
+#     fusion_tensor = torch.bmm(t1.unsqueeze(2), t2.unsqueeze(1))
+#     fusion_tensor = fusion_tensor.view(-1, size_t1 * size_t2)
+#     return fusion_tensor
+#
+# def basis_vec(size, ind):
+#     vec = torch.zeros((size))
+#     vec[ind] = 1
+#     return vec
 
 class MultiKernel(Kernel):
     """

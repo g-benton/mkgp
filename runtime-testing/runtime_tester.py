@@ -43,10 +43,12 @@ def main():
 
             # mk_model.eval();
             # like.eval();
-            #
+
             start_time = timeit.default_timer()
             prior_pred = mk_model.forward(pred_pts)
+            print(prior_pred)
             stop_time = timeit.default_timer()
+
             runtimes[pt_ind, task_ind] = stop_time - start_time
 
             print("done with ", n_pts, "points and ", n_tasks, " tasks")
