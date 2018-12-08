@@ -42,6 +42,14 @@ if __name__ == '__main__':
             return gpytorch.distributions.MultitaskMultivariateNormal(mean_x, covar_x)
 
     lh = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
+    lh.log_noise
+    lh.log_noise.data[0,0] = -8
+    lh.log_noise
+
+    lh2 = gpytorch.likelihoods.GaussianLikelihood()
+    lh2.log_noise
+    lh2.log_noise.data[0,0] = -8
+    lh2.log_noise
     # fake_x = torch.Tensor([0.5]).type(torch.FloatTensor)
     # fake_y = torch.tensor([[10,10]]).type(torch.FloatTensor)
     model = MultitaskModel(obs_x, obs_y, lh)
