@@ -33,7 +33,7 @@ def main():
         # full_y[obs_inds, :]
         try:
             kron_maxes[iter, :] = bayes_opt_kron(full_x, full_y, obs_inds, end_sample_count=n_samples)[n_start:]
-            print(kron_maxes)
+            # print(kron_maxes)
             print("trial ", iter, " done")
             if iter % 5 == 0:
                 np.savez(fname, kron_maxes=kron_maxes)

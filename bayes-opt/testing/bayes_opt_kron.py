@@ -81,13 +81,13 @@ def bayes_opt_kron(full_x, full_y, obs_inds, end_sample_count=30):
         found = 0
         expec_improve = list(expected_improvement(means, sd, current_max).detach().numpy())
         while not found:
-            print("hit here")
+            # print("hit here")
             max_ind = expec_improve.index(max(expec_improve))
             if all(expec_improve[0] == ei for ei in expec_improve):
                 obs_inds.append(int(max_ind))
                 found = 1
             if max_ind not in obs_inds:
-                print("hit there")
+                # print("hit there")
                 obs_inds.append(int(max_ind))
                 found = 1
             else:
