@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
 from copy import deepcopy
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/testing/writeup-plotting/")
+#sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/testing/writeup-plotting/")
+#sys.path.append("/Users/davidk/school/mkgp_pure/bayes-opt/testing/writeup-plotting/")
 
 from data_gen import data_gen
 from bayes_opt_multi import bayes_opt_multi
@@ -16,7 +17,7 @@ from bayes_opt_single import bayes_opt_single
 def main():
     n_pts = 1000
     full_x = torch.linspace(0, 10, n_pts)
-    n_start = 4
+    n_start = 2
 
     _, y1, _, y2 = data_gen(full_x)
     full_y1 = y1[0]
@@ -28,7 +29,7 @@ def main():
     plt_ind = 1
     cols = sns.color_palette("muted", 4)
 
-    iters_per_plot = 5 ## ONLY CHANGE THIS ##
+    iters_per_plot = 3  ## ONLY CHANGE THIS ##
     n_plots = 3
 
     for iter_count in range(iters_per_plot * n_plots):
@@ -48,6 +49,7 @@ def main():
             plt.fill_between(full_x.numpy(), lower[:, 0].detach().numpy(), upper[:, 0].detach().numpy(),
                                 color=cols[0], alpha=0.2)
             plt.scatter(full_x[next_pt].numpy(), full_y[next_pt, 0].numpy(), c='r', marker="*")
+            ymin, ymax = plt.ylim()
             plt_ind += 1
 
         obs_inds.append(next_pt)
@@ -65,6 +67,7 @@ def main():
             plt.scatter(full_x[next_pt].numpy(), full_y[next_pt, 0].numpy(), c='r', marker="*")
             plt.fill_between(full_x.numpy(), lower.detach().numpy(), upper.detach().numpy(),
                                 color=cols[0], alpha=0.2)
+            plt.ylim(ymin, ymax)
             plt_ind += 1
 
         obs_inds2.append(next_pt)

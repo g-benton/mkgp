@@ -3,6 +3,8 @@ import torch
 import gpytorch
 import matplotlib.pyplot as plt
 import seaborn as sns
+import sys
+#sys.path.append("/Users/davidk/school/mkgp_pure/bayes-opt/testing/writeup-plotting/")
 
 def data_gen(test_points, num_samples=1):
     # test_points = torch.linspace(0, 10, 100)
@@ -32,10 +34,10 @@ def data_gen(test_points, num_samples=1):
     ## FOR DAVE TO CHANGE ##
     ###########################################################################
     ###########################################################################
-    model1.covar_module.log_outputscale.data[0] = math.log(40)
-    model1.covar_module.base_kernel.log_lengthscale.data[0,0,0] = math.log(10)
-    model2.covar_module.log_outputscale.data[0] = math.log(10)
-    model2.covar_module.base_kernel.log_lengthscale.data[0,0,0] = math.log(0.5)
+    model1.covar_module.log_outputscale.data[0] = math.log(10)
+    model1.covar_module.base_kernel.log_lengthscale.data[0,0,0] = math.log(0.5)
+    model2.covar_module.log_outputscale.data[0] = math.log(100)
+    model2.covar_module.base_kernel.log_lengthscale.data[0,0,0] = math.log(4)
     ###########################################################################
     ###########################################################################
 

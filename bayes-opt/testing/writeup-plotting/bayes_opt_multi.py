@@ -5,7 +5,7 @@ import gpytorch
 import math
 import random
 import sys
-sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/multi-task/")
+sys.path.append("/Users/davidk/school/mkgp_pure/bayes-opt/multi-task/")
 import mk_kernel
 from gen_correlated_rbfs import gen_correlated_rbfs
 from helper_functions import expected_improvement
@@ -55,6 +55,8 @@ def bayes_opt_multi(full_x, full_y, obs_inds):
     lh = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
     model = MultitaskModel(full_x[obs_inds], full_y[obs_inds, :], lh)
     model.likelihood.log_noise.data[0,0] = -6
+    model.likelihood.log_task_noises.data[0,0] = -6
+    model.likelihood.log_task_noises.data[0,1] = -6
 
     model.train();
     lh.train();
