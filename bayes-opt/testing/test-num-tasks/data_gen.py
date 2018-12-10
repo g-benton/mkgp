@@ -5,8 +5,8 @@ import random
 import sys
 sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/testing/")
 import mk_kernel
-n_tasks = 4
-full_x = torch.linspace(0, 10, 100)
+# n_tasks = 4
+# full_x = torch.linspace(0, 10, 100)
 def data_gen(full_x, n_tasks=2):
     lh = gpytorch.likelihoods.MultitaskGaussianLikelihood(num_tasks=n_tasks)
 
@@ -38,12 +38,13 @@ def data_gen(full_x, n_tasks=2):
 
     prior_pred = model.forward(full_x)
     sample = prior_pred.rsample(torch.Size((1,)))[0]
+    sample = sample - sample[:, 0].max() + 10
 
     return sample
 
-
-    # plt.plot(sample[:, 0].detach().numpy())
-    # plt.plot(sample[:, 1].detach().numpy())
-    # plt.plot(sample[:, 2].detach().numpy())
-    # plt.plot(sample[:, 3].detach().numpy())
-    # plt.show()
+# import matplotlib.pyplot as plt
+# plt.plot(sample[:, 0].detach().numpy())
+# plt.plot(sample[:, 1].detach().numpy())
+# plt.plot(sample[:, 2].detach().numpy())
+# plt.plot(sample[:, 3].detach().numpy())
+# plt.show()

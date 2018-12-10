@@ -30,7 +30,7 @@ def bayes_opt_multi(full_x, full_y, obs_inds, end_sample_count=30):
     current_max = full_y[:, 0].max()
     found_maxes = [current_max]
     n_tasks = full_y.shape[1]
-
+    
     ## set up the model ##
     class MultitaskModel(gpytorch.models.ExactGP):
         def __init__(self, train_x, train_y, likelihood):

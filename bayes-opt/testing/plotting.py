@@ -5,12 +5,12 @@ import sys
 sys.path.append("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/testing/")
 
 def main():
-    kron_dat = np.load("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/testing/kron_conv_rates.npz")
-    kron_maxes = kron_dat["kron_maxes"]
+    # kron_dat = np.load("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/testing/kron_conv_rates.npz")
 
     other_dat = np.load("/Users/greg/Google Drive/Fall 18/ORIE6741/mkgp/bayes-opt/testing/conv_rates_data.npz")
     multi_maxes = other_dat["multi_maxes"]
     single_maxes = other_dat["single_maxes"]
+    kron_maxes = other_dat["kron_maxes"]
 
     kron_avg = np.mean(kron_maxes, axis=0)
     multi_avg = np.mean(multi_maxes, axis=0)
